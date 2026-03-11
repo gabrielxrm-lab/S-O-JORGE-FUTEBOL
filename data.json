@@ -29,6 +29,16 @@
       "phone": "",
       "photo_file": "robertocarlos.png",
       "team_start_date": "11/03/2026"
+    },
+    {
+      "id": "23b6bd18-16b9-495c-a09d-1377a178be6f",
+      "name": "IGOR ANDRADE",
+      "position": "MEIO-CAMPO",
+      "shirt_number": "10",
+      "date_of_birth": "14/05/1988",
+      "phone": "21 99017-9766",
+      "photo_file": "Nenhuma",
+      "team_start_date": "11/03/2026"
     }
   ],
   "monthly_payments": {},
