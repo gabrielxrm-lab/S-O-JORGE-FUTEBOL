@@ -4,14 +4,19 @@ import { api, AppData } from '../lib/api';
 import { differenceInDays, nextSunday, setHours, setMinutes, setSeconds, setMilliseconds } from 'date-fns';
 import { motion } from 'motion/react';
 import { Calendar, Trophy, Users } from 'lucide-react';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function Home() {
   const { role } = useAuth();
   const [data, setData] = useState<AppData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState('');
 
   useEffect(() => {
-    api.getData().then(setData).catch(console.error);
+    api.getData()
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -60,6 +65,10 @@ export function Home() {
 
   const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
+  if (loading) {
+    return <LoadingSpinner fullScreen />;
+  }
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -86,7 +95,7 @@ export function Home() {
           <Calendar size={20} className="text-indigo-400" />
           Próximo Jogo: Domingo, 07:00
         </h2>
-        <div className="font-mono text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400 tracking-wider relative z-10 drop-shadow-lg">
+        <div className="font-mono text-4xl sm:text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400 tracking-wider relative z-10 drop-shadow-lg">
           {timeLeft || 'Calculando...'}
         </div>
       </section>

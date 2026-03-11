@@ -3,10 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import { api, AppData } from '../lib/api';
 import { motion } from 'motion/react';
 import { Save, CheckCircle2, XCircle } from 'lucide-react';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function Payments() {
   const { role } = useAuth();
   const [data, setData] = useState<AppData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [payments, setPayments] = useState<Record<string, Record<string, string>>>({});
   const [saving, setSaving] = useState(false);
@@ -26,6 +28,8 @@ export function Payments() {
       setPayments(res.monthly_payments[year] || {});
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -67,6 +71,10 @@ export function Payments() {
 
   const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   const years = Array.from({ length: 7 }, (_, i) => (new Date().getFullYear() - 2 + i).toString());
+
+  if (loading) {
+    return <LoadingSpinner fullScreen />;
+  }
 
   if (!data) return null;
 

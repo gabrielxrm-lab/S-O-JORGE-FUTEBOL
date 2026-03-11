@@ -3,17 +3,22 @@ import { useAuth } from '../context/AuthContext';
 import { api, AppData } from '../lib/api';
 import { motion } from 'motion/react';
 import { Trophy, AlertTriangle, Edit2, X, Save } from 'lucide-react';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function Ranking() {
   const { role } = useAuth();
   const [data, setData] = useState<AppData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [password, setPassword] = useState('');
   const [editingPlayer, setEditingPlayer] = useState<any>(null);
 
   const isDiretoria = role === 'Diretoria';
 
   const loadData = () => {
-    api.getData().then(setData).catch(console.error);
+    api.getData()
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -145,6 +150,10 @@ export function Ranking() {
     </div>
   );
 
+  if (loading) {
+    return <LoadingSpinner fullScreen />;
+  }
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -162,7 +171,7 @@ export function Ranking() {
 
       {editingPlayer && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#111] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl">
+          <div className="bg-[#111] border border-white/10 rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl">
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-2xl font-black tracking-tight">Editar: <span className="text-indigo-400">{editingPlayer.name}</span></h2>
               <button onClick={() => setEditingPlayer(null)} className="text-zinc-500 hover:text-white bg-white/5 p-2 rounded-full transition-colors">
@@ -196,9 +205,9 @@ export function Ranking() {
                   <input type="number" value={editingPlayer.gol} onChange={e => setEditingPlayer({...editingPlayer, gol: parseInt(e.target.value) || 0})} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 font-bold focus:outline-none focus:border-indigo-500 transition-colors" />
                 </div>
               </div>
-              <div className="pt-6 flex justify-end gap-3">
-                <button type="button" onClick={() => setEditingPlayer(null)} className="px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 font-bold transition-colors">Cancelar</button>
-                <button type="submit" className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition-all">
+              <div className="pt-6 flex flex-col sm:flex-row justify-end gap-3">
+                <button type="button" onClick={() => setEditingPlayer(null)} className="w-full sm:w-auto px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 font-bold transition-colors">Cancelar</button>
+                <button type="submit" className="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition-all">
                   <Save size={20} /> Salvar
                 </button>
               </div>
@@ -235,7 +244,7 @@ export function Ranking() {
       </div>
 
       {isDiretoria && (
-        <div className="mt-12 bg-red-500/10 border border-red-500/20 rounded-3xl p-8">
+        <div className="mt-12 bg-red-500/10 border border-red-500/20 rounded-3xl p-6 md:p-8">
           <h2 className="text-2xl font-black text-red-500 flex items-center gap-3 mb-4 tracking-tight">
             <AlertTriangle size={28} />
             Área Restrita - Limpar Histórico

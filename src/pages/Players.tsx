@@ -4,10 +4,12 @@ import { api, Player, AppData } from '../lib/api';
 import { v4 as uuidv4 } from 'uuid';
 import { motion } from 'motion/react';
 import { Search, Plus, Edit2, Trash2, Save, X, Trophy, Star, Shield, Goal, Activity, Users } from 'lucide-react';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function Players() {
   const { role } = useAuth();
   const [data, setData] = useState<AppData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [viewingPlayer, setViewingPlayer] = useState<Player | null>(null);
@@ -16,7 +18,10 @@ export function Players() {
   const isDiretoria = role === 'Diretoria';
 
   const loadData = () => {
-    api.getData().then(setData).catch(console.error);
+    api.getData()
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -34,7 +39,7 @@ export function Players() {
       loadData();
     } catch (error) {
       console.error(error);
-      alert('Erro ao salvar jogador');
+      alert(`Erro ao salvar jogador: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     }
   };
 
@@ -92,6 +97,10 @@ export function Players() {
     }
   };
 
+  if (loading) {
+    return <LoadingSpinner fullScreen />;
+  }
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -119,7 +128,7 @@ export function Players() {
       )}
 
       {(isAdding || editingPlayer) && isDiretoria && (
-        <div className="bg-[#111] border border-white/5 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+        <div className="bg-[#111] border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
           <div className="flex justify-between items-center mb-8 relative z-10">
             <h2 className="text-2xl font-black tracking-tight">{isAdding ? 'Cadastrar Novo Jogador' : 'Editar Jogador'}</h2>
@@ -200,17 +209,17 @@ export function Players() {
               />
             </div>
 
-            <div className="md:col-span-2 flex justify-end gap-4 mt-6">
+            <div className="md:col-span-2 flex flex-col sm:flex-row justify-end gap-4 mt-6">
               <button 
                 type="button"
                 onClick={() => { setEditingPlayer(null); setIsAdding(false); }}
-                className="px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 font-bold transition-colors"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 font-bold transition-colors"
               >
                 Cancelar
               </button>
               <button 
                 type="submit"
-                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition-all"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition-all"
               >
                 <Save size={20} />
                 Salvar Jogador
@@ -241,7 +250,7 @@ export function Players() {
               <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full border-4 border-[#0a0a0a] overflow-hidden bg-zinc-800 shadow-xl">
                 <img 
                   src={viewingPlayer.photo_file && viewingPlayer.photo_file !== 'Nenhuma' 
-                    ? `https://raw.githubusercontent.com/gabrielxrm-lab/sjfc-streamlit-app/main/player_photos/${viewingPlayer.photo_file}`
+                    ? `https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/player_photos/${viewingPlayer.photo_file}`
                     : 'https://via.placeholder.com/150x150.png?text=SJFC'}
                   alt={viewingPlayer.name}
                   className="w-full h-full object-cover"
@@ -310,8 +319,8 @@ export function Players() {
       )}
 
       <div className="bg-[#111] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-white/5 flex items-center gap-4 bg-[#0a0a0a]">
-          <div className="relative flex-1 max-w-md">
+        <div className="p-4 md:p-6 border-b border-white/5 flex flex-col sm:flex-row items-center gap-4 bg-[#0a0a0a]">
+          <div className="relative w-full sm:flex-1 max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" size={20} />
             <input 
               type="text" 
@@ -352,7 +361,7 @@ export function Players() {
                       <div className="w-12 h-12 rounded-full bg-zinc-900 overflow-hidden flex-shrink-0 border-2 border-transparent group-hover:border-indigo-500 transition-colors shadow-md">
                         <img 
                           src={player.photo_file && player.photo_file !== 'Nenhuma' 
-                            ? `https://raw.githubusercontent.com/gabrielxrm-lab/sjfc-streamlit-app/main/player_photos/${player.photo_file}`
+                            ? `https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/player_photos/${player.photo_file}`
                             : 'https://via.placeholder.com/100x100.png?text=SJFC'}
                           alt={player.name}
                           className="w-full h-full object-cover"

@@ -3,16 +3,21 @@ import { useAuth } from '../context/AuthContext';
 import { api, AppData, Player } from '../lib/api';
 import { motion } from 'motion/react';
 import { Dices, Users } from 'lucide-react';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function TeamDraw() {
   const { role } = useAuth();
   const [data, setData] = useState<AppData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [numTeams, setNumTeams] = useState(2);
   const [teams, setTeams] = useState<Player[][]>([]);
 
   useEffect(() => {
-    api.getData().then(setData).catch(console.error);
+    api.getData()
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   const togglePlayer = (id: string) => {
@@ -41,6 +46,10 @@ export function TeamDraw() {
     setTeams(newTeams);
   };
 
+  if (loading) {
+    return <LoadingSpinner fullScreen />;
+  }
+
   if (!data) return null;
 
   return (
@@ -53,7 +62,7 @@ export function TeamDraw() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1 bg-zinc-900 border border-zinc-800 rounded-xl p-6 h-fit">
+        <div className="lg:col-span-1 bg-zinc-900 border border-zinc-800 rounded-xl p-4 md:p-6 h-fit">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Users size={20} />
             Jogadores Presentes ({selectedPlayers.length})
@@ -119,7 +128,7 @@ export function TeamDraw() {
               ))}
             </div>
           ) : (
-            <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-zinc-500 border-2 border-dashed border-zinc-800 rounded-xl p-8 text-center">
+            <div className="h-full min-h-[300px] md:min-h-[400px] flex flex-col items-center justify-center text-zinc-500 border-2 border-dashed border-zinc-800 rounded-xl p-6 md:p-8 text-center">
               <Dices size={48} className="mb-4 text-zinc-700" />
               <p className="text-lg font-medium text-zinc-400 mb-2">Nenhum time sorteado</p>
               <p className="text-sm">Selecione os jogadores presentes e clique em "Sortear Times".</p>

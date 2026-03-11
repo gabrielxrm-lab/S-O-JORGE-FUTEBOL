@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { api, GameStat } from '../lib/api';
 import { motion } from 'motion/react';
 import { Save, Trash2, Download } from 'lucide-react';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function MatchSummary() {
   const { role } = useAuth();
@@ -12,6 +13,7 @@ export function MatchSummary() {
   const [round, setRound] = useState('');
   const [homeName, setHomeName] = useState('MILAN');
   const [awayName, setAwayName] = useState('INTER');
+  const [saving, setSaving] = useState(false);
 
   const [craques, setCraques] = useState<string[]>([]);
   const [goleiros, setGoleiros] = useState<string[]>([]);
@@ -159,6 +161,7 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
     goleiros.forEach(n => (getStat(n).goleiro_do_jogo as number) += 1);
     golsJogo.forEach(n => (getStat(n).gol_do_jogo as number) += 1);
 
+    setSaving(true);
     try {
       await api.saveStats(Array.from(statsMap.values()));
       alert('Estatísticas salvas no Ranking com sucesso!');
@@ -166,8 +169,14 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
     } catch (error) {
       console.error(error);
       alert('Erro ao salvar estatísticas');
+    } finally {
+      setSaving(false);
     }
   };
+
+  if (saving) {
+    return <LoadingSpinner fullScreen />;
+  }
 
   const ListEditor = ({ title, items, setter, placeholder }: any) => {
     const [val, setVal] = useState('');
@@ -251,7 +260,7 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
       <h2 className="text-3xl font-black mt-12 tracking-tight">📝 Detalhes dos Times</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Time da Casa */}
-        <div className="bg-[#111] border border-white/5 rounded-3xl p-8 space-y-8 shadow-2xl relative overflow-hidden">
+        <div className="bg-[#111] border border-white/5 rounded-3xl p-6 md:p-8 space-y-8 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
           <div className="flex justify-between items-center relative z-10">
             <div className="flex items-center gap-4 w-2/3">
@@ -335,7 +344,7 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
         </div>
 
         {/* Time Visitante */}
-        <div className="bg-[#111] border border-white/5 rounded-3xl p-8 space-y-8 shadow-2xl relative overflow-hidden">
+        <div className="bg-[#111] border border-white/5 rounded-3xl p-6 md:p-8 space-y-8 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
           <div className="flex justify-between items-center relative z-10">
             <div className="flex items-center gap-4 w-2/3">
@@ -429,19 +438,19 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
         <ListEditor title="🟨 Cartões (Mês)" items={cartoesMes} setter={setCartoesMes} placeholder="Nome (2 amarelos)" />
       </div>
 
-      <div className="bg-[#111] border border-white/5 rounded-3xl p-8 space-y-8 shadow-2xl">
+      <div className="bg-[#111] border border-white/5 rounded-3xl p-6 md:p-8 space-y-8 shadow-2xl">
         <h2 className="text-3xl font-black tracking-tight">📄 Prévia e Finalização</h2>
         <pre className="bg-black/50 border border-white/10 p-6 rounded-2xl overflow-x-auto text-sm font-mono text-zinc-300 whitespace-pre-wrap shadow-inner">
           {generateText()}
         </pre>
 
-        <div className="flex flex-col md:flex-row gap-5">
-          <button onClick={downloadTxt} className="flex-1 flex justify-center items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white px-8 py-4 rounded-2xl transition-all font-bold shadow-lg">
+        <div className="flex flex-col sm:flex-row gap-5">
+          <button onClick={downloadTxt} className="w-full sm:flex-1 flex justify-center items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white px-8 py-4 rounded-2xl transition-all font-bold shadow-lg">
             <Download size={22} />
             Baixar Súmula (TXT)
           </button>
           {isDiretoria && (
-            <button onClick={saveStats} className="flex-1 flex justify-center items-center gap-3 bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-2xl transition-all font-bold shadow-lg shadow-emerald-500/20">
+            <button onClick={saveStats} className="w-full sm:flex-1 flex justify-center items-center gap-3 bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-2xl transition-all font-bold shadow-lg shadow-emerald-500/20">
               <Save size={22} />
               Salvar no Ranking e Limpar
             </button>

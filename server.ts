@@ -1,39 +1,64 @@
 import express from 'express';
-import fs from 'fs/promises';
 import path from 'path';
-import { createServer as createViteServer } from 'vite';
 
 const app = express();
 const PORT = 3000;
 
 app.use(express.json());
 
-const DATA_FILE = path.join(process.cwd(), 'data.json');
+const getGitHubConfig = () => ({
+  token: process.env.GITHUB_TOKEN,
+  repo: process.env.GITHUB_REPO || 'gabrielxrm-lab/S-O-JORGE-FUTEBOL',
+  branch: process.env.GITHUB_BRANCH || 'main',
+  filePath: 'data.json'
+});
 
-// Ensure data file exists
-async function initDataFile() {
+const defaultData = { players: [], monthly_payments: {}, game_stats: [] };
+let memoryData: any = null; // Fallback for missing token or cold starts
+
+async function readData() {
+  const { token, repo, branch, filePath } = getGitHubConfig();
+  
+  if (!token) {
+    console.warn('GITHUB_TOKEN não configurado. Retornando dados em memória (somente leitura).');
+    return memoryData || defaultData;
+  }
+
   try {
-    await fs.access(DATA_FILE);
-  } catch {
-    const defaultData = { players: [], monthly_payments: {}, game_stats: [] };
-    await fs.writeFile(DATA_FILE, JSON.stringify(defaultData, null, 2));
+    const url = `https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}`;
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    if (res.status === 404) {
+      return defaultData;
+    }
+
+    if (!res.ok) {
+      throw new Error(`GitHub API error: ${res.statusText}`);
+    }
+
+    const fileData = await res.json();
+    const content = Buffer.from(fileData.content, 'base64').toString('utf-8');
+    const parsedData = JSON.parse(content);
+    memoryData = parsedData; // Cache it
+    return parsedData;
+  } catch (error) {
+    console.error('Erro ao ler dados do GitHub:', error);
+    return memoryData || defaultData;
   }
 }
 
-async function readData() {
-  await initDataFile();
-  const data = await fs.readFile(DATA_FILE, 'utf-8');
-  return JSON.parse(data);
-}
-
-async function pushToGitHub(data: any) {
-  const token = process.env.GITHUB_TOKEN;
-  const repo = process.env.GITHUB_REPO || 'gabrielxrm-lab/sjfc-streamlit-app';
-  const branch = process.env.GITHUB_BRANCH || 'main';
-  const filePath = 'data.json';
+async function writeData(data: any) {
+  const { token, repo, branch, filePath } = getGitHubConfig();
+  
+  memoryData = data; // Update cache immediately
 
   if (!token) {
-    console.log('GITHUB_TOKEN não configurado. Pulando commit no GitHub.');
+    console.warn('GITHUB_TOKEN não configurado. Salvando apenas em memória (será perdido ao reiniciar).');
     return;
   }
 
@@ -64,7 +89,7 @@ async function pushToGitHub(data: any) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        message: 'Auto-update data.json via AI Studio',
+        message: 'Auto-update data.json via AI Studio / Vercel',
         content: content,
         sha: sha || undefined,
         branch: branch
@@ -74,19 +99,14 @@ async function pushToGitHub(data: any) {
     if (!putRes.ok) {
       const errorData = await putRes.json();
       console.error('Falha ao fazer push para o GitHub:', errorData);
+      throw new Error(`Falha ao salvar no GitHub: ${errorData.message || putRes.statusText}`);
     } else {
       console.log('data.json atualizado com sucesso no GitHub!');
     }
   } catch (error) {
     console.error('Erro ao fazer push para o GitHub:', error);
+    throw error;
   }
-}
-
-async function writeData(data: any) {
-  await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
-  
-  // Dispara o push para o GitHub em background
-  pushToGitHub(data).catch(console.error);
 }
 
 // API Routes
@@ -114,7 +134,8 @@ app.post('/api/players', async (req, res) => {
     await writeData(data);
     res.json({ success: true, player: newPlayer });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to save player' });
+    console.error('Erro detalhado no POST /api/players:', error);
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to save player' });
   }
 });
 
@@ -202,9 +223,11 @@ app.put('/api/stats/player', async (req, res) => {
 });
 
 async function startServer() {
-  await initDataFile();
+  // Pré-carrega os dados do GitHub na inicialização
+  await readData();
 
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -222,4 +245,9 @@ async function startServer() {
   });
 }
 
-startServer();
+// No Vercel, não iniciamos o servidor na porta 3000, apenas exportamos o app
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;

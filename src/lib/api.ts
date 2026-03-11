@@ -34,12 +34,27 @@ export const api = {
   },
 
   async savePlayer(player: Player): Promise<void> {
-    const res = await fetch('/api/players', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(player),
-    });
-    if (!res.ok) throw new Error('Failed to save player');
+    try {
+      const res = await fetch('/api/players', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(player),
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('API Error Response:', res.status, errorText);
+        let errorData = {};
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (e) {
+          // Not JSON
+        }
+        throw new Error((errorData as any).error || `Failed to save player: ${res.status} ${res.statusText}`);
+      }
+    } catch (error) {
+      console.error('Network or parsing error in savePlayer:', error);
+      throw error;
+    }
   },
 
   async deletePlayer(id: string): Promise<void> {
