@@ -29,7 +29,7 @@ async function readData() {
     const url = `https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}`;
     const res = await fetch(url, {
       headers: {
-        'Authorization': `token ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github.v3+json'
       }
     });
@@ -65,11 +65,12 @@ async function writeData(data: any) {
 
   try {
     const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
+    console.log(`[GitHub Sync] Tentando salvar em: ${url} na branch: ${branch}`);
     
     // 1. Obter o SHA atual do arquivo
     const getRes = await fetch(`${url}?ref=${branch}`, {
       headers: {
-        'Authorization': `token ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github.v3+json'
       }
     });
@@ -78,6 +79,9 @@ async function writeData(data: any) {
     if (getRes.ok) {
       const fileData = await getRes.json();
       sha = fileData.sha;
+      console.log(`[GitHub Sync] Arquivo encontrado. SHA: ${sha}`);
+    } else {
+      console.log(`[GitHub Sync] Arquivo não encontrado (novo arquivo). Status: ${getRes.status}`);
     }
 
     // 2. Atualizar o arquivo
@@ -85,7 +89,7 @@ async function writeData(data: any) {
     const putRes = await fetch(url, {
       method: 'PUT',
       headers: {
-        'Authorization': `token ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github.v3+json',
         'Content-Type': 'application/json'
       },
@@ -99,13 +103,14 @@ async function writeData(data: any) {
 
     if (!putRes.ok) {
       const errorData = await putRes.json();
-      console.error('Falha ao fazer push para o GitHub:', errorData);
+      console.error('[GitHub Sync] Falha ao fazer push para o GitHub:', errorData);
+      console.error(`[GitHub Sync] Detalhes: Repo=${repo}, Branch=${branch}, File=${filePath}`);
       throw new Error(`Falha ao salvar no GitHub: ${errorData.message || putRes.statusText}`);
     } else {
-      console.log('data.json atualizado com sucesso no GitHub!');
+      console.log('[GitHub Sync] data.json atualizado com sucesso no GitHub!');
     }
   } catch (error) {
-    console.error('Erro ao fazer push para o GitHub:', error);
+    console.error('[GitHub Sync] Erro ao fazer push para o GitHub:', error);
     throw error;
   }
 }
