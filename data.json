@@ -11,6 +11,13 @@
       "team_start_date": "11/03/2026"
     }
   ],
-  "monthly_payments": {},
+  "monthly_payments": {
+    "2026": {
+      "9faedd7c-9dd3-45f8-8752-63e44ee59a65": {
+        "1": "Paga",
+        "2": "Paga"
+      }
+    }
+  },
   "game_stats": []
 }
