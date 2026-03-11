@@ -1,0 +1,17 @@
+{
+  "players": [
+    {
+      "id": "d30c63cb-bcee-4ff8-b235-57c3562446ab",
+      "name": "RENATO CONRADO",
+      "position": "MEIO-CAMPO",
+      "shirt_number": "8",
+      "date_of_birth": "24/10",
+      "phone": "21 97140676",
+      "photo_file": "RCONRADO.png",
+      "team_start_date": "11/03/2026"
+    }
+  ],
+  "monthly_payments": {},
+  "game_stats": [],
+  "transactions": []
+}
