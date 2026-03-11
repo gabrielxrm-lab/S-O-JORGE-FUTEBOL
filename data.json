@@ -32,37 +32,6 @@
     }
   ],
   "monthly_payments": {},
-  "game_stats": [
-    {
-      "game_date": "2026-03-11",
-      "player_name": "RENATO",
-      "goals": 10,
-      "yellow_cards": 0,
-      "red_cards": 0,
-      "craque_do_jogo": 0,
-      "goleiro_do_jogo": 0,
-      "gol_do_jogo": 0
-    },
-    {
-      "game_date": "2026-03-11",
-      "player_name": "BABY",
-      "goals": 5,
-      "yellow_cards": 0,
-      "red_cards": 1,
-      "craque_do_jogo": 0,
-      "goleiro_do_jogo": 0,
-      "gol_do_jogo": 0
-    },
-    {
-      "game_date": "2026-03-11",
-      "player_name": "GABRIEL",
-      "goals": 0,
-      "yellow_cards": 1,
-      "red_cards": 0,
-      "craque_do_jogo": 0,
-      "goleiro_do_jogo": 0,
-      "gol_do_jogo": 0
-    }
-  ],
+  "game_stats": [],
   "transactions": []
 }
