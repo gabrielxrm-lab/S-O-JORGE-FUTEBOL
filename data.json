@@ -9,6 +9,16 @@
       "phone": "21 97140-0676",
       "photo_file": "RCONRADO.png",
       "team_start_date": "11/03/2026"
+    },
+    {
+      "id": "6135f37f-35a8-4a94-9003-7a1067f8bd5e",
+      "name": "GABRIEL CONRADO",
+      "position": "GOLEIRO",
+      "shirt_number": "1",
+      "date_of_birth": "20/06",
+      "phone": "21 97275-7256",
+      "photo_file": "gb.png",
+      "team_start_date": "11/03/2026"
     }
   ],
   "monthly_payments": {
