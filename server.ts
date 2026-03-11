@@ -26,8 +26,67 @@ async function readData() {
   return JSON.parse(data);
 }
 
+async function pushToGitHub(data: any) {
+  const token = process.env.GITHUB_TOKEN;
+  const repo = process.env.GITHUB_REPO || 'gabrielxrm-lab/sjfc-streamlit-app';
+  const branch = process.env.GITHUB_BRANCH || 'main';
+  const filePath = 'data.json';
+
+  if (!token) {
+    console.log('GITHUB_TOKEN não configurado. Pulando commit no GitHub.');
+    return;
+  }
+
+  try {
+    const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
+    
+    // 1. Obter o SHA atual do arquivo
+    const getRes = await fetch(`${url}?ref=${branch}`, {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    let sha = '';
+    if (getRes.ok) {
+      const fileData = await getRes.json();
+      sha = fileData.sha;
+    }
+
+    // 2. Atualizar o arquivo
+    const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
+    const putRes = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'Auto-update data.json via AI Studio',
+        content: content,
+        sha: sha || undefined,
+        branch: branch
+      })
+    });
+
+    if (!putRes.ok) {
+      const errorData = await putRes.json();
+      console.error('Falha ao fazer push para o GitHub:', errorData);
+    } else {
+      console.log('data.json atualizado com sucesso no GitHub!');
+    }
+  } catch (error) {
+    console.error('Erro ao fazer push para o GitHub:', error);
+  }
+}
+
 async function writeData(data: any) {
   await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
+  
+  // Dispara o push para o GitHub em background
+  pushToGitHub(data).catch(console.error);
 }
 
 // API Routes
