@@ -9,6 +9,16 @@
       "phone": "21 972757256",
       "photo_file": "gb goleiro.jpg",
       "team_start_date": "11/03/2026"
+    },
+    {
+      "id": "a55d29ad-15e1-426b-821b-57565884d083",
+      "name": "RENATO CONRADO",
+      "position": "MEIO-CAMPO",
+      "shirt_number": "8",
+      "date_of_birth": "24/10/1984",
+      "phone": "21 97140-0676",
+      "photo_file": "RCONRADO",
+      "team_start_date": "11/03/2026"
     }
   ],
   "monthly_payments": {
