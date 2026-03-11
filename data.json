@@ -29,6 +29,16 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "11/03/2026"
+    },
+    {
+      "id": "8432d7f4-ee00-42f4-8839-3e448ff7b457",
+      "name": "BABY",
+      "position": "LATERAL",
+      "shirt_number": "3",
+      "date_of_birth": "2000 antes de cristo",
+      "phone": "",
+      "photo_file": "robertocarlos.png",
+      "team_start_date": "11/03/2026"
     }
   ],
   "monthly_payments": {},
