@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import { Buffer } from 'buffer';
 
 const app = express();
 const PORT = 3000;
@@ -226,8 +227,9 @@ async function startServer() {
   // Pré-carrega os dados do GitHub na inicialização
   await readData();
 
-  if (process.env.NODE_ENV !== 'production') {
-    const { createServer: createViteServer } = await import('vite');
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    const viteName = 'vite';
+    const { createServer: createViteServer } = await import(String(viteName));
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -236,7 +238,7 @@ async function startServer() {
   } else {
     app.use(express.static('dist'));
     app.get('*', (req, res) => {
-      res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
+      res.sendFile(path.resolve(process.cwd(), 'dist', 'index.html'));
     });
   }
 
@@ -249,5 +251,10 @@ async function startServer() {
 if (!process.env.VERCEL) {
   startServer();
 }
+
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Express Unhandled Error:', err);
+  res.status(500).json({ error: 'Internal Server Error', details: err.message });
+});
 
 export default app;
