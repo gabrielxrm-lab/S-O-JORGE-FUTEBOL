@@ -77,7 +77,7 @@ export function Home() {
     >
       <header className="text-center space-y-4">
         <img 
-          src="https://raw.githubusercontent.com/gabrielxrm-lab/sjfc-streamlit-app/main/logo_sao_jorge.png" 
+          src="https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/logo_sao_jorge.png" 
           alt="Logo SJFC" 
           className="w-32 h-32 mx-auto object-contain drop-shadow-2xl"
         />
@@ -114,7 +114,7 @@ export function Home() {
             {birthdays.map(player => {
               const day = player.date_of_birth.split('/')[0];
               const photoUrl = player.photo_file && player.photo_file !== 'Nenhuma' 
-                ? `https://raw.githubusercontent.com/gabrielxrm-lab/sjfc-streamlit-app/main/player_photos/${player.photo_file}`
+                ? `https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/player_photos/${player.photo_file}`
                 : 'https://via.placeholder.com/200x200.png?text=Sem+Foto';
 
               return (
@@ -152,7 +152,7 @@ export function Home() {
           ].map((img, i) => (
             <div key={i} className="aspect-video bg-zinc-900 rounded-2xl overflow-hidden border border-white/5 shadow-lg group">
               <img 
-                src={`https://raw.githubusercontent.com/gabrielxrm-lab/sjfc-streamlit-app/main/player_photos/slideshow/${img}`} 
+                src={`https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/player_photos/slideshow/${img}`} 
                 alt="Galeria" 
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
               />
