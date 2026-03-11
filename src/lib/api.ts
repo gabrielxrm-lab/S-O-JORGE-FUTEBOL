@@ -20,10 +20,20 @@ export interface GameStat {
   gol_do_jogo: boolean | number;
 }
 
+export interface Transaction {
+  id: string;
+  date: string;
+  description: string;
+  type: 'income' | 'expense';
+  category: string;
+  amount: number;
+}
+
 export interface AppData {
   players: Player[];
   monthly_payments: Record<string, Record<string, Record<string, string>>>;
   game_stats: GameStat[];
+  transactions?: Transaction[];
 }
 
 export const api = {
@@ -92,5 +102,19 @@ export const api = {
       body: JSON.stringify(stats),
     });
     if (!res.ok) throw new Error('Failed to update stats');
+  },
+
+  async saveTransaction(transaction: Transaction): Promise<void> {
+    const res = await fetch('/api/transactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(transaction),
+    });
+    if (!res.ok) throw new Error('Failed to save transaction');
+  },
+
+  async deleteTransaction(id: string): Promise<void> {
+    const res = await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete transaction');
   }
 };

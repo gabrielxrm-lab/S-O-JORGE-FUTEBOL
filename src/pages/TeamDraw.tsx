@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api, AppData, Player } from '../lib/api';
 import { motion } from 'motion/react';
-import { Dices, Users } from 'lucide-react';
+import { Dices, Users, MessageCircle } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function TeamDraw() {
@@ -46,6 +46,22 @@ export function TeamDraw() {
     setTeams(newTeams);
   };
 
+  const handleShareTeams = () => {
+    if (teams.length === 0 || teams[0].length === 0) return;
+    
+    let message = `🎲 *Sorteio de Times - São Jorge FC* 🎲\n\n`;
+    
+    teams.forEach((team, i) => {
+      message += `*Time ${i + 1}*\n`;
+      team.forEach(p => {
+        message += `- ${p.name} (${p.position})\n`;
+      });
+      message += `\n`;
+    });
+    
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
   if (loading) {
     return <LoadingSpinner fullScreen />;
   }
@@ -59,6 +75,15 @@ export function TeamDraw() {
           <Dices className="text-indigo-500" size={32} />
           Sorteio de Times
         </h1>
+        {role === 'Diretoria' && teams.length > 0 && teams[0].length > 0 && (
+          <button 
+            onClick={handleShareTeams}
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold transition-colors"
+          >
+            <MessageCircle size={20} />
+            Compartilhar no WhatsApp
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

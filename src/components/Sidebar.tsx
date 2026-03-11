@@ -30,7 +30,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const navItems = [
     { path: '/', label: 'Página Principal', icon: Home },
     { path: '/players', label: 'Gerenciar Jogadores', icon: Users },
-    ...(isDiretoria ? [{ path: '/payments', label: 'Mensalidades', icon: DollarSign }] : []),
+    ...(isDiretoria ? [{ path: '/payments', label: 'Financeiro', icon: DollarSign }] : []),
     { path: '/summary', label: 'Nova Súmula', icon: FileText },
     { path: '/draw', label: 'Sorteio de Times', icon: Dices },
     { path: '/ranking', label: 'Ranking', icon: Trophy },

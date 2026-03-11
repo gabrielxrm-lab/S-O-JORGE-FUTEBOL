@@ -14,7 +14,7 @@ const getGitHubConfig = () => ({
   filePath: 'data.json'
 });
 
-const defaultData = { players: [], monthly_payments: {}, game_stats: [] };
+const defaultData = { players: [], monthly_payments: {}, game_stats: [], transactions: [] };
 let memoryData: any = null; // Fallback for missing token or cold starts
 
 async function readData() {
@@ -225,6 +225,40 @@ app.put('/api/stats/player', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Failed to update stats' });
+  }
+});
+
+app.post('/api/transactions', async (req, res) => {
+  try {
+    const data = await readData();
+    if (!data.transactions) data.transactions = [];
+    
+    const newTx = req.body;
+    const existingIndex = data.transactions.findIndex((t: any) => t.id === newTx.id);
+    if (existingIndex >= 0) {
+      data.transactions[existingIndex] = newTx;
+    } else {
+      data.transactions.push(newTx);
+    }
+    
+    await writeData(data);
+    res.json({ success: true, transaction: newTx });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to save transaction' });
+  }
+});
+
+app.delete('/api/transactions/:id', async (req, res) => {
+  try {
+    const data = await readData();
+    if (!data.transactions) data.transactions = [];
+    
+    data.transactions = data.transactions.filter((t: any) => t.id !== req.params.id);
+    
+    await writeData(data);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete transaction' });
   }
 });
 

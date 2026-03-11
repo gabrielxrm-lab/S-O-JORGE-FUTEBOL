@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { api, AppData } from '../lib/api';
 import { differenceInDays, nextSunday, setHours, setMinutes, setSeconds, setMilliseconds } from 'date-fns';
 import { motion } from 'motion/react';
-import { Calendar, Trophy, Users } from 'lucide-react';
+import { Calendar, Trophy, Users, MessageCircle } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function Home() {
@@ -65,6 +65,19 @@ export function Home() {
 
   const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
+  const handleShareBirthdays = () => {
+    if (birthdays.length === 0) return;
+    const monthName = monthNames[currentMonth - 1];
+    let message = `🎂 *Aniversariantes de ${monthName}* 🎂\n\n`;
+    birthdays.forEach(p => {
+      const day = p.date_of_birth.split('/')[0];
+      message += `Dia ${day} - ${p.name}\n`;
+    });
+    message += `\nParabéns aos nossos craques! 🎉⚽`;
+    
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
   if (loading) {
     return <LoadingSpinner fullScreen />;
   }
@@ -101,9 +114,20 @@ export function Home() {
       </section>
 
       <section>
-        <h2 className="text-3xl font-black mb-8 flex items-center gap-3 tracking-tight">
-          <span className="text-3xl">🎂</span> Aniversariantes de {monthNames[currentMonth - 1]}
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <h2 className="text-3xl font-black flex items-center gap-3 tracking-tight">
+            <span className="text-3xl">🎂</span> Aniversariantes de {monthNames[currentMonth - 1]}
+          </h2>
+          {role === 'Diretoria' && birthdays.length > 0 && (
+            <button 
+              onClick={handleShareBirthdays}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold transition-colors w-fit"
+            >
+              <MessageCircle size={20} />
+              Compartilhar
+            </button>
+          )}
+        </div>
         
         {birthdays.length === 0 ? (
           <div className="bg-[#111] border border-white/5 rounded-2xl p-10 text-center text-zinc-500 font-medium text-lg">
@@ -136,29 +160,6 @@ export function Home() {
             })}
           </div>
         )}
-      </section>
-
-      <section>
-        <h2 className="text-3xl font-black mb-8 flex items-center gap-3 tracking-tight">
-          <span className="text-3xl">🖼️</span> Galeria do Time
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
-          {[
-            "20250817_075933.jpg",
-            "20250817_080001.jpg",
-            "20250817_085832.jpg",
-            "20250817_085914.jpg",
-            "20250817_085945.jpg"
-          ].map((img, i) => (
-            <div key={i} className="aspect-video bg-zinc-900 rounded-2xl overflow-hidden border border-white/5 shadow-lg group">
-              <img 
-                src={`https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/player_photos/slideshow/${img}`} 
-                alt="Galeria" 
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-              />
-            </div>
-          ))}
-        </div>
       </section>
     </motion.div>
   );
