@@ -189,6 +189,16 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "12/03/2026"
+    },
+    {
+      "id": "17dfcb15-5b3d-4456-9168-ecdb85c9c7cf",
+      "name": "LEANDRO",
+      "position": "ZAGUEIRO",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "12/03/2026"
     }
   ],
   "monthly_payments": {},
