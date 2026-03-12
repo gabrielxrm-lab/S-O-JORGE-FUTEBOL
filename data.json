@@ -10,6 +10,14 @@
       "type": "expense",
       "category": "Bolas",
       "amount": 120
+    },
+    {
+      "id": "c71f161c-b6de-45d4-8e7d-d61d0b4f8f7d",
+      "date": "2026-03-12",
+      "description": "CASA DA PIZZA",
+      "type": "income",
+      "category": "Patrocínio",
+      "amount": 100
     }
   ]
 }
