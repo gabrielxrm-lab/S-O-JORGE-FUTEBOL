@@ -199,6 +199,16 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "12/03/2026"
+    },
+    {
+      "id": "2fb64c54-b849-487f-96f2-27aa5c31d227",
+      "name": "LUCINHO",
+      "position": "ATACANTE",
+      "shirt_number": "",
+      "date_of_birth": "21/06/1979",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "12/03/2026"
     }
   ],
   "monthly_payments": {},
