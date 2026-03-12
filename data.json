@@ -34,6 +34,14 @@
       "type": "expense",
       "category": "Lavagem",
       "amount": 120
+    },
+    {
+      "id": "29ae984d-b819-4df0-876d-714c82cf85b8",
+      "date": "2026-03-12",
+      "description": "LAVAGEM UNIFORME",
+      "type": "expense",
+      "category": "Lavagem",
+      "amount": 120
     }
   ]
 }
