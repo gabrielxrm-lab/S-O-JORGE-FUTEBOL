@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { api } from '../lib/api';
 
-type Role = 'Jogador' | 'Diretoria';
+type Role = 'Jogador' | 'Membro' | 'Diretoria';
 
 interface AuthContextType {
   role: Role;
-  loginAsDiretoria: (password: string) => boolean;
+  userName: string | null;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -12,24 +14,47 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<Role>('Jogador');
+  const [userName, setUserName] = useState<string | null>(null);
 
-  const loginAsDiretoria = (password: string) => {
-    // In a real app, this should be validated on the backend.
-    // For this prototype, we'll use a simple check.
+  const login = async (username: string, password: string) => {
     const correctPassword = import.meta.env.VITE_DIRETORIA_PASSWORD || 'admin123';
-    if (password === correctPassword) {
+    
+    // Default admin fallback
+    if (username.toLowerCase() === 'admin' && password === correctPassword) {
       setRole('Diretoria');
+      setUserName('Admin');
       return true;
     }
+
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (res.ok) {
+        const { user } = await res.json();
+        setRole(user.role);
+        setUserName(user.name);
+        return true;
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+
     return false;
   };
 
   const logout = () => {
     setRole('Jogador');
+    setUserName(null);
   };
 
   return (
-    <AuthContext.Provider value={{ role, loginAsDiretoria, logout }}>
+    <AuthContext.Provider value={{ role, userName, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -9,10 +9,10 @@ export function Ranking() {
   const { role } = useAuth();
   const [data, setData] = useState<AppData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [password, setPassword] = useState('');
   const [editingPlayer, setEditingPlayer] = useState<any>(null);
 
   const isDiretoria = role === 'Diretoria';
+  const hasAccess = role === 'Diretoria' || role === 'Membro';
 
   const loadData = () => {
     api.getData()
@@ -26,18 +26,18 @@ export function Ranking() {
   }, []);
 
   const handleClear = async () => {
-    const correctPassword = import.meta.env.VITE_DIRETORIA_PASSWORD || 'admin123';
-    if (password !== correctPassword) {
-      alert('Senha incorreta.');
+    const confirmText = window.prompt('Esta ação apagará permanentemente TODAS as estatísticas de TODAS as partidas salvas. Esta ação é irreversível.\n\nDigite CONFIRMAR para apagar o histórico:');
+    
+    if (confirmText !== 'CONFIRMAR') {
+      if (confirmText !== null) {
+        alert('Texto incorreto. Ação cancelada.');
+      }
       return;
     }
-
-    if (!window.confirm('Esta ação apagará permanentemente TODAS as estatísticas de TODAS as partidas salvas. Esta ação é irreversível.')) return;
 
     try {
       await api.clearStats();
       alert('O histórico do ranking foi limpo com sucesso!');
-      setPassword('');
       loadData();
     } catch (error) {
       console.error(error);
@@ -112,13 +112,13 @@ export function Ranking() {
               {columns.map((col: any, i: number) => (
                 <th key={i} className="px-5 py-4 font-bold text-center">{col.label}</th>
               ))}
-              {isDiretoria && <th className="px-5 py-4 font-bold text-center w-16">Ações</th>}
+              {hasAccess && <th className="px-5 py-4 font-bold text-center w-16">Ações</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length + (isDiretoria ? 3 : 2)} className="px-5 py-8 text-center text-zinc-500 font-medium">
+                <td colSpan={columns.length + (hasAccess ? 3 : 2)} className="px-5 py-8 text-center text-zinc-500 font-medium">
                   Nenhum registro.
                 </td>
               </tr>
@@ -130,7 +130,7 @@ export function Ranking() {
                   {columns.map((col: any, j: number) => (
                     <td key={j} className="px-5 py-4 text-center text-zinc-300 font-black text-base">{row[col.key]}</td>
                   ))}
-                  {isDiretoria && (
+                  {hasAccess && (
                     <td className="px-5 py-4 text-center">
                       <button 
                         onClick={() => setEditingPlayer({...row})}
@@ -253,17 +253,9 @@ export function Ranking() {
             Esta ação apagará permanentemente TODAS as estatísticas de TODAS as partidas salvas. Esta ação é irreversível.
           </p>
           <div className="flex gap-4 max-w-md">
-            <input 
-              type="password" 
-              placeholder="Senha da Diretoria" 
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-red-500 transition-colors"
-            />
             <button 
               onClick={handleClear}
-              disabled={!password}
-              className="bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white px-8 py-3 rounded-xl transition-all font-bold shadow-lg shadow-red-500/20"
+              className="bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-xl transition-all font-bold shadow-lg shadow-red-500/20"
             >
               Limpar Ranking
             </button>

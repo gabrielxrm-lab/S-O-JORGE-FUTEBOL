@@ -12,6 +12,8 @@ import { Payments } from './pages/Payments';
 import { MatchSummary } from './pages/MatchSummary';
 import { Ranking } from './pages/Ranking';
 import { TeamDraw } from './pages/TeamDraw';
+import { Login } from './pages/Login';
+import { Users } from './pages/Users';
 
 export default function App() {
   return (
@@ -25,6 +27,8 @@ export default function App() {
             <Route path="summary" element={<MatchSummary />} />
             <Route path="ranking" element={<Ranking />} />
             <Route path="draw" element={<TeamDraw />} />
+            <Route path="login" element={<Login />} />
+            <Route path="users" element={<Users />} />
           </Route>
         </Routes>
       </BrowserRouter>

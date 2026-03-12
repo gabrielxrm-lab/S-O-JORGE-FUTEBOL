@@ -8,6 +8,8 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function Home() {
   const { role } = useAuth();
+  const hasAccess = role === 'Diretoria' || role === 'Membro';
+
   const [data, setData] = useState<AppData | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState('');
@@ -98,7 +100,7 @@ export function Home() {
         <p className="text-xl text-zinc-400 font-medium tracking-widest uppercase">Desde 1980</p>
         
         <div className="inline-block px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-sm font-bold mt-4 tracking-wide shadow-lg backdrop-blur-md">
-          {role === 'Diretoria' ? '🔑 Você está no modo Diretoria' : '👁️ Você está no modo Jogador'}
+          {hasAccess ? `🔑 Você está no modo ${role}` : '👁️ Você está no modo Jogador'}
         </div>
       </header>
 
@@ -118,7 +120,7 @@ export function Home() {
           <h2 className="text-3xl font-black flex items-center gap-3 tracking-tight">
             <span className="text-3xl">🎂</span> Aniversariantes de {monthNames[currentMonth - 1]}
           </h2>
-          {role === 'Diretoria' && birthdays.length > 0 && (
+          {hasAccess && birthdays.length > 0 && (
             <button 
               onClick={handleShareBirthdays}
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold transition-colors w-fit"

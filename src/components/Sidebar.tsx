@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Home, Users, DollarSign, FileText, Dices, Trophy, LogOut, Key, X } from 'lucide-react';
+import { Home, Users, DollarSign, FileText, Dices, Trophy, LogOut, Key, X, User } from 'lucide-react';
 import clsx from 'clsx';
 
 interface SidebarProps {
@@ -10,22 +10,13 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { role, loginAsDiretoria, logout } = useAuth();
+  const { role, userName, logout } = useAuth();
   const location = useLocation();
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const isDiretoria = role === 'Diretoria';
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (loginAsDiretoria(password)) {
-      setPassword('');
-      setError('');
-    } else {
-      setError('Senha incorreta.');
-    }
-  };
+  const isMembro = role === 'Membro';
+  const hasAccess = isDiretoria || isMembro;
 
   const navItems = [
     { path: '/', label: 'Página Principal', icon: Home },
@@ -34,6 +25,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { path: '/summary', label: 'Nova Súmula', icon: FileText },
     { path: '/draw', label: 'Sorteio de Times', icon: Dices },
     { path: '/ranking', label: 'Ranking', icon: Trophy },
+    ...(isDiretoria ? [{ path: '/users', label: 'Gerenciar Acessos', icon: User }] : []),
   ];
 
   return (
@@ -72,38 +64,32 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="p-4 border-b border-white/5">
           <h2 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Perfil de Acesso</h2>
           
-          {isDiretoria ? (
-            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-              <p className="text-emerald-400 text-sm font-bold mb-3">Logado como Diretoria</p>
+          {hasAccess ? (
+            <div className={`bg-${isDiretoria ? 'emerald' : 'indigo'}-500/10 border border-${isDiretoria ? 'emerald' : 'indigo'}-500/20 rounded-xl p-4 relative overflow-hidden`}>
+              <div className={`absolute top-0 left-0 w-1 h-full bg-${isDiretoria ? 'emerald' : 'indigo'}-500`}></div>
+              <p className={`text-${isDiretoria ? 'emerald' : 'indigo'}-400 text-sm font-bold mb-1`}>{userName}</p>
+              <p className="text-zinc-400 text-xs mb-3">Acesso: {role}</p>
               <button 
                 onClick={logout}
                 className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-zinc-200 py-2 rounded-lg transition-colors text-sm font-medium border border-white/5"
               >
                 <LogOut size={16} />
-                Sair do modo Edição
+                Sair da Conta
               </button>
             </div>
           ) : (
             <div className="bg-white/5 border border-white/5 rounded-xl p-4">
               <p className="text-zinc-400 text-sm mb-3 font-medium">Modo Jogador (Visualização)</p>
-              <form onSubmit={handleLogin} className="space-y-2">
-                <input 
-                  type="password" 
-                  placeholder="Senha da Diretoria" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                />
-                {error && <p className="text-red-400 text-xs font-medium">{error}</p>}
-                <button 
-                  type="submit"
-                  className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-lg transition-colors text-sm font-bold shadow-lg shadow-indigo-500/20"
-                >
-                  <Key size={16} />
-                  Entrar como Diretoria
-                </button>
-              </form>
+              <button 
+                onClick={() => {
+                  navigate('/login');
+                  if (window.innerWidth < 1024) onClose();
+                }}
+                className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-lg transition-colors text-sm font-bold shadow-lg shadow-indigo-500/20"
+              >
+                <Key size={16} />
+                Fazer Login
+              </button>
             </div>
           )}
         </div>

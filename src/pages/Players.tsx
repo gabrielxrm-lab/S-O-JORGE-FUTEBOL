@@ -16,6 +16,7 @@ export function Players() {
   const [isAdding, setIsAdding] = useState(false);
 
   const isDiretoria = role === 'Diretoria';
+  const hasAccess = role === 'Diretoria' || role === 'Membro';
 
   const loadData = () => {
     api.getData()
@@ -110,7 +111,7 @@ export function Players() {
           </div>
           Gerenciamento de Jogadores
         </h1>
-        {isDiretoria && !isAdding && !editingPlayer && (
+        {hasAccess && !isAdding && !editingPlayer && (
           <button 
             onClick={startAdd}
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-xl transition-all font-bold shadow-lg shadow-indigo-500/20"
@@ -121,13 +122,13 @@ export function Players() {
         )}
       </div>
 
-      {!isDiretoria && (
+      {!hasAccess && (
         <div className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 p-5 rounded-2xl flex items-center gap-3 font-bold">
           <span className="text-xl">🔒</span> Modo de visualização. Para editar, acesse como Diretoria na página principal.
         </div>
       )}
 
-      {(isAdding || editingPlayer) && isDiretoria && (
+      {(isAdding || editingPlayer) && hasAccess && (
         <div className="bg-[#111] border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
           <div className="flex justify-between items-center mb-8 relative z-10">
@@ -207,6 +208,19 @@ export function Players() {
                 onChange={e => setEditingPlayer(prev => prev ? {...prev, photo_file: e.target.value} : null)}
                 className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 font-bold focus:outline-none focus:border-indigo-500 transition-colors"
               />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-zinc-500">Nível do Jogador (1 a 3)</label>
+              <select 
+                value={editingPlayer?.level || 1}
+                onChange={e => setEditingPlayer(prev => prev ? {...prev, level: Number(e.target.value)} : null)}
+                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+              >
+                <option value={1}>1 - Iniciante/Regular</option>
+                <option value={2}>2 - Bom/Intermediário</option>
+                <option value={3}>3 - Craque/Avançado</option>
+              </select>
             </div>
 
             <div className="md:col-span-2 flex flex-col sm:flex-row justify-end gap-4 mt-6">
@@ -338,15 +352,16 @@ export function Players() {
               <tr>
                 <th className="px-6 py-5 font-bold">Nome</th>
                 <th className="px-6 py-5 font-bold">Posição</th>
+                <th className="px-6 py-5 font-bold">Nível</th>
                 <th className="px-6 py-5 font-bold">Camisa</th>
                 <th className="px-6 py-5 font-bold">Idade/Nasc.</th>
-                {isDiretoria && <th className="px-6 py-5 font-bold text-right">Ações</th>}
+                {hasAccess && <th className="px-6 py-5 font-bold text-right">Ações</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {filteredPlayers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-zinc-500 font-medium text-lg">
+                  <td colSpan={6} className="px-6 py-10 text-center text-zinc-500 font-medium text-lg">
                     Nenhum jogador encontrado.
                   </td>
                 </tr>
@@ -371,9 +386,16 @@ export function Players() {
                       {player.name}
                     </td>
                     <td className="px-6 py-4 text-zinc-400 font-bold">{player.position}</td>
+                    <td className="px-6 py-4 text-zinc-400 font-bold">
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: player.level || 1 }).map((_, i) => (
+                          <Star key={i} size={14} className="text-amber-400 fill-amber-400" />
+                        ))}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-zinc-400 font-bold">{player.shirt_number || '-'}</td>
                     <td className="px-6 py-4 text-zinc-400 font-bold">{player.date_of_birth || '-'}</td>
-                    {isDiretoria && (
+                    {hasAccess && (
                       <td className="px-6 py-4 text-right space-x-2" onClick={e => e.stopPropagation()}>
                         <button 
                           onClick={() => { setEditingPlayer(player); setIsAdding(false); }}

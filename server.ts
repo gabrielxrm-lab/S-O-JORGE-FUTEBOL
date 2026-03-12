@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { Buffer } from 'buffer';
+import bcrypt from 'bcryptjs';
 
 const app = express();
 const PORT = 3000;
@@ -119,7 +120,15 @@ async function writeData(data: any) {
 app.get('/api/data', async (req, res) => {
   try {
     const data = await readData();
-    res.json(data);
+    // Strip passwords before sending to client
+    const safeData = {
+      ...data,
+      users: data.users ? data.users.map((u: any) => {
+        const { password, ...safeUser } = u;
+        return safeUser;
+      }) : []
+    };
+    res.json(safeData);
   } catch (error) {
     res.status(500).json({ error: 'Failed to read data' });
   }
@@ -259,6 +268,97 @@ app.delete('/api/transactions/:id', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete transaction' });
+  }
+});
+
+app.post('/api/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const data = await readData();
+    
+    if (!data.users) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const user = data.users.find((u: any) => u.name.toLowerCase() === username.toLowerCase());
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Check if password matches (either bcrypt or plain text for legacy users)
+    let isMatch = false;
+    if (user.password && user.password.startsWith('$2a$')) {
+      isMatch = await bcrypt.compare(password, user.password);
+    } else {
+      // Legacy plain text password
+      isMatch = user.password === password;
+      
+      // Auto-upgrade password to bcrypt if it matches
+      if (isMatch) {
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
+        await writeData(data);
+      }
+    }
+
+    if (isMatch) {
+      const { password: _, ...safeUser } = user;
+      return res.json({ success: true, user: safeUser });
+    } else {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/users', async (req, res) => {
+  try {
+    const data = await readData();
+    if (!data.users) data.users = [];
+    
+    const newUser = req.body;
+    
+    // Hash password if provided and not already hashed (basic check)
+    if (newUser.password && !newUser.password.startsWith('$2a$')) {
+      const salt = await bcrypt.genSalt(10);
+      newUser.password = await bcrypt.hash(newUser.password, salt);
+    }
+    
+    const existingIndex = data.users.findIndex((u: any) => u.id === newUser.id);
+    if (existingIndex >= 0) {
+      // If updating and no new password provided, keep the old one
+      if (!newUser.password && data.users[existingIndex].password) {
+        newUser.password = data.users[existingIndex].password;
+      }
+      data.users[existingIndex] = newUser;
+    } else {
+      data.users.push(newUser);
+    }
+    
+    await writeData(data);
+    
+    // Return safe user without password
+    const { password, ...safeUser } = newUser;
+    res.json({ success: true, user: safeUser });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to save user' });
+  }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const data = await readData();
+    if (!data.users) data.users = [];
+    
+    data.users = data.users.filter((u: any) => u.id !== req.params.id);
+    
+    await writeData(data);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete user' });
   }
 });
 

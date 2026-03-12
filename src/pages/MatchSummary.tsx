@@ -7,7 +7,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function MatchSummary() {
   const { role } = useAuth();
-  const isDiretoria = role === 'Diretoria';
+  const hasAccess = role === 'Diretoria' || role === 'Membro';
 
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [round, setRound] = useState('');
@@ -128,7 +128,7 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
   };
 
   const saveStats = async () => {
-    if (!isDiretoria) return;
+    if (!hasAccess) return;
     
     const statsMap = new Map<string, GameStat>();
     
@@ -189,12 +189,12 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
             placeholder={placeholder}
             value={val}
             onChange={e => setVal(e.target.value.toUpperCase())}
-            disabled={!isDiretoria}
+            disabled={!hasAccess}
             className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
           />
           <button 
             onClick={() => { handleAddList(setter, val); setVal(''); }}
-            disabled={!isDiretoria || !val}
+            disabled={!hasAccess || !val}
             className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all"
           >
             Add
@@ -204,7 +204,7 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
           {items.map((item: string, i: number) => (
             <li key={i} className="flex justify-between items-center text-sm font-bold bg-black/30 p-3 rounded-xl border border-white/5">
               <span>{item}</span>
-              {isDiretoria && (
+              {hasAccess && (
                 <button onClick={() => handleRemoveList(setter, i)} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors">
                   <Trash2 size={18} />
                 </button>
@@ -225,7 +225,7 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
           </div>
           Gerador de Súmula
         </h1>
-        {isDiretoria && (
+        {hasAccess && (
           <button onClick={clearAll} className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 px-5 py-3 rounded-xl transition-colors font-bold border border-red-500/20">
             <Trash2 size={20} />
             Limpar Campos
@@ -233,20 +233,20 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
         )}
       </div>
 
-      {!isDiretoria && (
+      {!hasAccess && (
         <div className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 p-5 rounded-2xl flex items-center gap-3 font-bold">
-          <span className="text-xl">🔒</span> Apenas a Diretoria pode criar ou editar súmulas.
+          <span className="text-xl">🔒</span> Apenas a Diretoria e Membros podem criar ou editar súmulas.
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-xl">
           <label className="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-3">Data</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} disabled={!isDiretoria} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 font-bold focus:outline-none focus:border-indigo-500 transition-colors" />
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} disabled={!hasAccess} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 font-bold focus:outline-none focus:border-indigo-500 transition-colors" />
         </div>
         <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-xl">
           <label className="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-3">Rodada</label>
-          <input type="text" value={round} onChange={e => setRound(e.target.value)} disabled={!isDiretoria} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 font-bold focus:outline-none focus:border-indigo-500 transition-colors" />
+          <input type="text" value={round} onChange={e => setRound(e.target.value)} disabled={!hasAccess} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 font-bold focus:outline-none focus:border-indigo-500 transition-colors" />
         </div>
       </div>
 
@@ -265,14 +265,14 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
           <div className="flex justify-between items-center relative z-10">
             <div className="flex items-center gap-4 w-2/3">
               <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg" alt="Milan" className="w-12 h-12 object-contain drop-shadow-lg" />
-              <input type="text" value={homeName} onChange={e => setHomeName(e.target.value.toUpperCase())} disabled={!isDiretoria} className="bg-transparent text-3xl font-black text-red-500 focus:outline-none w-full tracking-tight" />
+              <input type="text" value={homeName} onChange={e => setHomeName(e.target.value.toUpperCase())} disabled={!hasAccess} className="bg-transparent text-3xl font-black text-red-500 focus:outline-none w-full tracking-tight" />
             </div>
             <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-red-400 to-red-600">{homeGoals.reduce((s, g) => s + g.qty, 0)}</div>
           </div>
           
           <div className="space-y-5 relative z-10">
             <h4 className="font-black text-lg border-b border-white/5 pb-3 tracking-tight">Gols</h4>
-            {isDiretoria && (
+            {hasAccess && (
               <form onSubmit={e => {
                 e.preventDefault();
                 const fd = new FormData(e.currentTarget);
@@ -298,7 +298,7 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
               {homeGoals.map((g, i) => (
                 <li key={i} className="flex justify-between items-center text-sm font-bold bg-black/30 p-3 rounded-xl border border-white/5">
                   <span>⚽ {g.name} ({g.shirt}) - <span className="text-red-400">{g.qty} gol(s)</span></span>
-                  {isDiretoria && <button onClick={() => setHomeGoals(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
+                  {hasAccess && <button onClick={() => setHomeGoals(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
                 </li>
               ))}
             </ul>
@@ -306,7 +306,7 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
 
           <div className="space-y-5 relative z-10">
             <h4 className="font-black text-lg border-b border-white/5 pb-3 tracking-tight">Cartões</h4>
-            {isDiretoria && (
+            {hasAccess && (
               <form onSubmit={e => {
                 e.preventDefault();
                 const fd = new FormData(e.currentTarget);
@@ -330,13 +330,13 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
               {homeYellow.map((n, i) => (
                 <li key={`y-${i}`} className="flex justify-between items-center text-sm font-bold bg-black/30 p-3 rounded-xl border border-white/5">
                   <span>🟨 {n}</span>
-                  {isDiretoria && <button onClick={() => setHomeYellow(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
+                  {hasAccess && <button onClick={() => setHomeYellow(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
                 </li>
               ))}
               {homeRed.map((n, i) => (
                 <li key={`r-${i}`} className="flex justify-between items-center text-sm font-bold bg-black/30 p-3 rounded-xl border border-white/5">
                   <span>🟥 {n}</span>
-                  {isDiretoria && <button onClick={() => setHomeRed(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
+                  {hasAccess && <button onClick={() => setHomeRed(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
                 </li>
               ))}
             </ul>
@@ -349,14 +349,14 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
           <div className="flex justify-between items-center relative z-10">
             <div className="flex items-center gap-4 w-2/3">
               <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg" alt="Inter" className="w-12 h-12 object-contain drop-shadow-lg" />
-              <input type="text" value={awayName} onChange={e => setAwayName(e.target.value.toUpperCase())} disabled={!isDiretoria} className="bg-transparent text-3xl font-black text-blue-500 focus:outline-none w-full tracking-tight" />
+              <input type="text" value={awayName} onChange={e => setAwayName(e.target.value.toUpperCase())} disabled={!hasAccess} className="bg-transparent text-3xl font-black text-blue-500 focus:outline-none w-full tracking-tight" />
             </div>
             <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-400 to-blue-600">{awayGoals.reduce((s, g) => s + g.qty, 0)}</div>
           </div>
           
           <div className="space-y-5 relative z-10">
             <h4 className="font-black text-lg border-b border-white/5 pb-3 tracking-tight">Gols</h4>
-            {isDiretoria && (
+            {hasAccess && (
               <form onSubmit={e => {
                 e.preventDefault();
                 const fd = new FormData(e.currentTarget);
@@ -382,7 +382,7 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
               {awayGoals.map((g, i) => (
                 <li key={i} className="flex justify-between items-center text-sm font-bold bg-black/30 p-3 rounded-xl border border-white/5">
                   <span>⚽ {g.name} ({g.shirt}) - <span className="text-blue-400">{g.qty} gol(s)</span></span>
-                  {isDiretoria && <button onClick={() => setAwayGoals(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
+                  {hasAccess && <button onClick={() => setAwayGoals(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
                 </li>
               ))}
             </ul>
@@ -390,7 +390,7 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
 
           <div className="space-y-5 relative z-10">
             <h4 className="font-black text-lg border-b border-white/5 pb-3 tracking-tight">Cartões</h4>
-            {isDiretoria && (
+            {hasAccess && (
               <form onSubmit={e => {
                 e.preventDefault();
                 const fd = new FormData(e.currentTarget);
@@ -414,13 +414,13 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
               {awayYellow.map((n, i) => (
                 <li key={`y-${i}`} className="flex justify-between items-center text-sm font-bold bg-black/30 p-3 rounded-xl border border-white/5">
                   <span>🟨 {n}</span>
-                  {isDiretoria && <button onClick={() => setAwayYellow(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
+                  {hasAccess && <button onClick={() => setAwayYellow(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
                 </li>
               ))}
               {awayRed.map((n, i) => (
                 <li key={`r-${i}`} className="flex justify-between items-center text-sm font-bold bg-black/30 p-3 rounded-xl border border-white/5">
                   <span>🟥 {n}</span>
-                  {isDiretoria && <button onClick={() => setAwayRed(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
+                  {hasAccess && <button onClick={() => setAwayRed(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
                 </li>
               ))}
             </ul>
@@ -449,7 +449,7 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
             <Download size={22} />
             Baixar Súmula (TXT)
           </button>
-          {isDiretoria && (
+          {hasAccess && (
             <button onClick={saveStats} className="w-full sm:flex-1 flex justify-center items-center gap-3 bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-2xl transition-all font-bold shadow-lg shadow-emerald-500/20">
               <Save size={22} />
               Salvar no Ranking e Limpar

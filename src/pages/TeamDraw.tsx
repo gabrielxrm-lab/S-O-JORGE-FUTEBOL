@@ -7,6 +7,8 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function TeamDraw() {
   const { role } = useAuth();
+  const hasAccess = role === 'Diretoria' || role === 'Membro';
+
   const [data, setData] = useState<AppData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
@@ -31,16 +33,51 @@ export function TeamDraw() {
     
     const playersToDraw = data.players.filter(p => selectedPlayers.includes(p.id));
     
-    // Shuffle array
-    for (let i = playersToDraw.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [playersToDraw[i], playersToDraw[j]] = [playersToDraw[j], playersToDraw[i]];
-    }
+    const byPosition: Record<string, Player[]> = {};
+    playersToDraw.forEach(p => {
+      if (!byPosition[p.position]) byPosition[p.position] = [];
+      byPosition[p.position].push(p);
+    });
+
+    Object.keys(byPosition).forEach(pos => {
+      byPosition[pos].sort((a, b) => {
+        const levelDiff = (b.level || 1) - (a.level || 1);
+        if (levelDiff !== 0) return levelDiff;
+        return Math.random() - 0.5;
+      });
+    });
 
     const newTeams: Player[][] = Array.from({ length: numTeams }, () => []);
-    
-    playersToDraw.forEach((player, index) => {
-      newTeams[index % numTeams].push(player);
+    const teamLevels = Array.from({ length: numTeams }, () => 0);
+
+    const posOrder = ['GOLEIRO', 'ZAGUEIRO', 'MEIO-CAMPO', 'ATACANTE', 'LATERAL'];
+    const otherPositions = Object.keys(byPosition).filter(p => !posOrder.includes(p));
+    const allPositions = [...posOrder, ...otherPositions];
+
+    allPositions.forEach(pos => {
+      const players = byPosition[pos] || [];
+      players.forEach(player => {
+        let minLevel = Infinity;
+        let minTeamIdx = 0;
+        
+        for (let i = 0; i < numTeams; i++) {
+          if (teamLevels[i] < minLevel) {
+            minLevel = teamLevels[i];
+            minTeamIdx = i;
+          } else if (teamLevels[i] === minLevel) {
+            if (newTeams[i].length < newTeams[minTeamIdx].length) {
+              minTeamIdx = i;
+            } else if (newTeams[i].length === newTeams[minTeamIdx].length) {
+                if (Math.random() > 0.5) {
+                    minTeamIdx = i;
+                }
+            }
+          }
+        }
+
+        newTeams[minTeamIdx].push(player);
+        teamLevels[minTeamIdx] += (player.level || 1);
+      });
     });
 
     setTeams(newTeams);
@@ -75,7 +112,7 @@ export function TeamDraw() {
           <Dices className="text-indigo-500" size={32} />
           Sorteio de Times
         </h1>
-        {role === 'Diretoria' && teams.length > 0 && teams[0].length > 0 && (
+        {hasAccess && teams.length > 0 && teams[0].length > 0 && (
           <button 
             onClick={handleShareTeams}
             className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold transition-colors"

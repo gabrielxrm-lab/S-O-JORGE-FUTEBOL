@@ -7,6 +7,7 @@ export interface Player {
   phone: string;
   photo_file: string;
   team_start_date: string;
+  level?: number;
 }
 
 export interface GameStat {
@@ -29,11 +30,19 @@ export interface Transaction {
   amount: number;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  password?: string;
+  role: 'Diretoria' | 'Membro';
+}
+
 export interface AppData {
   players: Player[];
   monthly_payments: Record<string, Record<string, Record<string, string>>>;
   game_stats: GameStat[];
   transactions?: Transaction[];
+  users?: User[];
 }
 
 export const api = {
@@ -116,5 +125,19 @@ export const api = {
   async deleteTransaction(id: string): Promise<void> {
     const res = await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete transaction');
+  },
+
+  async saveUser(user: User): Promise<void> {
+    const res = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(user),
+    });
+    if (!res.ok) throw new Error('Failed to save user');
+  },
+
+  async deleteUser(id: string): Promise<void> {
+    const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete user');
   }
 };
