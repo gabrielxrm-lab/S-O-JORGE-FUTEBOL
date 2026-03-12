@@ -79,6 +79,16 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "12/03/2026"
+    },
+    {
+      "id": "e997a873-aaf3-406c-a49a-5b25a24c7af3",
+      "name": "DUDU",
+      "position": "ZAGUEIRO",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "12/03/2026"
     }
   ],
   "monthly_payments": {},
