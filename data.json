@@ -69,6 +69,16 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "12/03/2026"
+    },
+    {
+      "id": "4f467cfd-1909-452e-a06d-fa68dc8be288",
+      "name": "DANIEL",
+      "position": "ATACANTE",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "12/03/2026"
     }
   ],
   "monthly_payments": {},
