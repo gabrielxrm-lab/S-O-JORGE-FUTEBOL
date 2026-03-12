@@ -142,13 +142,23 @@ export function Payments() {
     const bal = totalInc - totalExp;
 
     try {
-      const res = await fetch('https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/logo_sao_jorge.png');
-      const blob = await res.blob();
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
       const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/png'));
+          } else {
+            reject(new Error('Canvas context null'));
+          }
+        };
+        img.onerror = reject;
+        img.src = 'https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/logo_sao_jorge.png';
       });
       doc.addImage(base64, 'PNG', 165, 10, 30, 30);
     } catch (error) {
