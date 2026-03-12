@@ -119,6 +119,16 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "12/03/2026"
+    },
+    {
+      "id": "21d82fd0-527a-4f76-9cbc-3708e32c6f4f",
+      "name": "ESQUERDA",
+      "position": "MEIO-CAMPO",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "12/03/2026"
     }
   ],
   "monthly_payments": {},
