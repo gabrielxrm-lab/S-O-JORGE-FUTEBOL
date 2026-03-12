@@ -293,5 +293,13 @@
   ],
   "monthly_payments": {},
   "game_stats": [],
-  "transactions": []
+  "transactions": [],
+  "users": [
+    {
+      "id": "8b6bf24c-e0d4-4911-bb49-8fed98c3d2ee",
+      "name": "Renato",
+      "password": "$2b$10$CSuiYP0JFwZPxnz3c3s7Z.pa9H3EQncGTSVmtL7Gr2wz2UjhBTq1K",
+      "role": "Diretoria"
+    }
+  ]
 }
