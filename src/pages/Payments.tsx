@@ -127,7 +127,7 @@ export function Payments() {
     }
   };
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
     const doc = new jsPDF();
     
     const filteredTx = transactions.filter(tx => {
@@ -140,6 +140,20 @@ export function Payments() {
     const totalInc = filteredTx.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
     const totalExp = filteredTx.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
     const bal = totalInc - totalExp;
+
+    try {
+      const res = await fetch('https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/logo_sao_jorge.png');
+      const blob = await res.blob();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      doc.addImage(base64, 'PNG', 165, 10, 30, 30);
+    } catch (error) {
+      console.error('Erro ao carregar logo para o PDF:', error);
+    }
 
     doc.setFontSize(18);
     doc.text('Relatório de Fluxo de Caixa - São Jorge FC', 14, 22);
