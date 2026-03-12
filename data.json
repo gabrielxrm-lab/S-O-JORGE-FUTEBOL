@@ -18,6 +18,14 @@
       "type": "income",
       "category": "Patrocínio",
       "amount": 100
+    },
+    {
+      "id": "2f913937-8f4b-4908-bff4-1fad930d9057",
+      "date": "2026-03-12",
+      "description": "MENSALIDADES TOTAL",
+      "type": "income",
+      "category": "Mensalidade",
+      "amount": 835
     }
   ]
 }
