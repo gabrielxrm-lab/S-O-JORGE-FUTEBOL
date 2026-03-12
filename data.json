@@ -39,6 +39,16 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "12/03/2026"
+    },
+    {
+      "id": "b8cf6269-401c-4f1a-9a81-a74c5f5cd6a1",
+      "name": "BABY",
+      "position": "LATERAL",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "12/03/2026"
     }
   ],
   "monthly_payments": {},
