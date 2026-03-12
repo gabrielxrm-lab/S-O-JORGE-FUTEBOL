@@ -1,0 +1,14 @@
+{
+  "players": [],
+  "monthly_payments": {},
+  "game_stats": [],
+  "transactions": [],
+  "users": [
+    {
+      "id": "907083dd-6ae7-4357-a2f8-39cf8e966c17",
+      "name": "Renato",
+      "password": "$2b$10$bs2oZqz4sUAqBmeFmgWKhOqNBJJfSIjZsccBJef0Xc2wIp2VbFIlm",
+      "role": "Diretoria"
+    }
+  ]
+}
