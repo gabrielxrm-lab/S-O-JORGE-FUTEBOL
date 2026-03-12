@@ -99,6 +99,16 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "12/03/2026"
+    },
+    {
+      "id": "7295216a-62b6-4ebe-8c2f-c6545f3d9d6b",
+      "name": "EDGAR",
+      "position": "LATERAL",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "12/03/2026"
     }
   ],
   "monthly_payments": {},
