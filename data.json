@@ -9,6 +9,16 @@
       "phone": "21 97140-0676",
       "photo_file": "Nenhuma",
       "team_start_date": "12/03/2026"
+    },
+    {
+      "id": "f4a1ae2e-9f7d-4139-bfe9-becab8e94d0f",
+      "name": "GABRIEL",
+      "position": "GOLEIRO",
+      "shirt_number": "1",
+      "date_of_birth": "20/06/1995",
+      "phone": "21 972757256",
+      "photo_file": "Nenhuma",
+      "team_start_date": "12/03/2026"
     }
   ],
   "monthly_payments": {},
