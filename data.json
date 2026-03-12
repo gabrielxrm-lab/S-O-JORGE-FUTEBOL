@@ -1,0 +1,17 @@
+{
+  "players": [
+    {
+      "id": "94d6d5ac-d98a-47f1-b51f-ec07df1ca339",
+      "name": "RENATO",
+      "position": "MEIO-CAMPO",
+      "shirt_number": "8",
+      "date_of_birth": "24/10/1984",
+      "phone": "21 97140-0676",
+      "photo_file": "Nenhuma",
+      "team_start_date": "12/03/2026"
+    }
+  ],
+  "monthly_payments": {},
+  "game_stats": [],
+  "transactions": []
+}
