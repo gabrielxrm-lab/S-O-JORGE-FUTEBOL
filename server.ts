@@ -8,7 +8,7 @@ const PORT = 3000;
 app.use(express.json());
 
 const getGitHubConfig = () => ({
-  token: process.env.GITHUB_TOKEN,
+  token: process.env.GITHUB_TOKEN || '4mnGBeIx086NuAO7tjhrTko5FbM978T7',
   repo: process.env.GITHUB_REPO || 'gabrielxrm-lab/S-O-JORGE-FUTEBOL',
   branch: process.env.GITHUB_BRANCH || 'main',
   filePath: 'data.json'

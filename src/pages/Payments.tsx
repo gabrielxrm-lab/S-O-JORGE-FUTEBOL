@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api, AppData, Transaction, Player } from '../lib/api';
 import { motion } from 'motion/react';
-import { Save, CheckCircle2, XCircle, MessageCircle, Wallet, TrendingUp, TrendingDown, Plus, Trash2 } from 'lucide-react';
+import { Save, CheckCircle2, XCircle, MessageCircle, Wallet, TrendingUp, TrendingDown, Plus, Trash2, FileText } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export function Payments() {
   const { role } = useAuth();
@@ -16,6 +18,9 @@ export function Payments() {
   const [activeTab, setActiveTab] = useState<'mensalidades' | 'fluxo'>('mensalidades');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [showTxModal, setShowTxModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportStartDate, setReportStartDate] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
+  const [reportEndDate, setReportEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [newTx, setNewTx] = useState<Partial<Transaction>>({ type: 'income', date: new Date().toISOString().split('T')[0] });
 
   useEffect(() => {
@@ -120,6 +125,69 @@ export function Payments() {
       console.error(error);
       alert('Erro ao excluir transação');
     }
+  };
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+    
+    const filteredTx = transactions.filter(tx => {
+      const txDate = new Date(tx.date).getTime();
+      const start = new Date(reportStartDate).getTime();
+      const end = new Date(reportEndDate).getTime();
+      return txDate >= start && txDate <= end;
+    }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    const totalInc = filteredTx.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
+    const totalExp = filteredTx.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
+    const bal = totalInc - totalExp;
+
+    doc.setFontSize(18);
+    doc.text('Relatório de Fluxo de Caixa - São Jorge FC', 14, 22);
+    
+    doc.setFontSize(11);
+    doc.text(`Período: ${new Date(reportStartDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })} a ${new Date(reportEndDate).toLocaleDateString('pt-BR', { timeZone: 'UTC'})}`, 14, 30);
+
+    doc.text(`Entradas: R$ ${totalInc.toFixed(2)}`, 14, 40);
+    doc.text(`Saídas: R$ ${totalExp.toFixed(2)}`, 14, 46);
+    doc.text(`Saldo do Período: R$ ${bal.toFixed(2)}`, 14, 52);
+
+    const tableData = filteredTx.map(tx => [
+      new Date(tx.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
+      tx.description,
+      tx.category,
+      tx.type === 'income' ? 'Entrada' : 'Saída',
+      `R$ ${tx.amount.toFixed(2)}`
+    ]);
+
+    autoTable(doc, {
+      startY: 60,
+      head: [['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: { fillColor: [79, 70, 229] },
+    });
+
+    const finalY = (doc as any).lastAutoTable.finalY || 60;
+
+    let sigY = finalY + 40;
+    if (sigY + 80 > doc.internal.pageSize.height) {
+      doc.addPage();
+      sigY = 40;
+    }
+    
+    doc.line(60, sigY, 150, sigY);
+    doc.text('Diretoria', 105, sigY + 5, { align: 'center' });
+
+    sigY += 30;
+    doc.line(60, sigY, 150, sigY);
+    doc.text('Jogador (Testemunha 1)', 105, sigY + 5, { align: 'center' });
+
+    sigY += 30;
+    doc.line(60, sigY, 150, sigY);
+    doc.text('Jogador (Testemunha 2)', 105, sigY + 5, { align: 'center' });
+
+    doc.save(`relatorio-caixa-${reportStartDate}-a-${reportEndDate}.pdf`);
+    setShowReportModal(false);
   };
 
   const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
@@ -270,13 +338,22 @@ export function Payments() {
 
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold">Histórico de Transações</h2>
-            <button 
-              onClick={() => setShowTxModal(true)}
-              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              <Plus size={20} />
-              Nova Transação
-            </button>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowReportModal(true)}
+                className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                <FileText size={20} />
+                Gerar Relatório PDF
+              </button>
+              <button 
+                onClick={() => setShowTxModal(true)}
+                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                <Plus size={20} />
+                Nova Transação
+              </button>
+            </div>
           </div>
 
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
@@ -436,6 +513,55 @@ export function Payments() {
                 className="flex-1 py-3 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 transition-colors text-white"
               >
                 Salvar
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-md"
+          >
+            <h2 className="text-2xl font-bold mb-6">Gerar Relatório PDF</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-zinc-400 mb-1">Data Inicial</label>
+                <input 
+                  type="date" 
+                  value={reportStartDate}
+                  onChange={e => setReportStartDate(e.target.value)}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-zinc-400 mb-1">Data Final</label>
+                <input 
+                  type="date" 
+                  value={reportEndDate}
+                  onChange={e => setReportEndDate(e.target.value)}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-8">
+              <button 
+                onClick={() => setShowReportModal(false)}
+                className="flex-1 py-3 rounded-xl font-bold bg-zinc-800 hover:bg-zinc-700 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={generatePDF}
+                className="flex-1 py-3 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 transition-colors text-white"
+              >
+                Gerar PDF
               </button>
             </div>
           </motion.div>

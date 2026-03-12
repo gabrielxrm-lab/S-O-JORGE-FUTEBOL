@@ -138,7 +138,7 @@ export function Home() {
             {birthdays.map(player => {
               const day = player.date_of_birth.split('/')[0];
               const photoUrl = player.photo_file && player.photo_file !== 'Nenhuma' 
-                ? `https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/player_photos/${player.photo_file}`
+                ? `https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/PLAYER_PHOTOS/${player.photo_file}`
                 : 'https://via.placeholder.com/200x200.png?text=Sem+Foto';
 
               return (

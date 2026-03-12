@@ -250,7 +250,7 @@ export function Players() {
               <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full border-4 border-[#0a0a0a] overflow-hidden bg-zinc-800 shadow-xl">
                 <img 
                   src={viewingPlayer.photo_file && viewingPlayer.photo_file !== 'Nenhuma' 
-                    ? `https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/player_photos/${viewingPlayer.photo_file}`
+                    ? `https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/PLAYER_PHOTOS/${viewingPlayer.photo_file}`
                     : 'https://via.placeholder.com/150x150.png?text=SJFC'}
                   alt={viewingPlayer.name}
                   className="w-full h-full object-cover"
@@ -361,7 +361,7 @@ export function Players() {
                       <div className="w-12 h-12 rounded-full bg-zinc-900 overflow-hidden flex-shrink-0 border-2 border-transparent group-hover:border-indigo-500 transition-colors shadow-md">
                         <img 
                           src={player.photo_file && player.photo_file !== 'Nenhuma' 
-                            ? `https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/player_photos/${player.photo_file}`
+                            ? `https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/PLAYER_PHOTOS/${player.photo_file}`
                             : 'https://via.placeholder.com/100x100.png?text=SJFC'}
                           alt={player.name}
                           className="w-full h-full object-cover"
