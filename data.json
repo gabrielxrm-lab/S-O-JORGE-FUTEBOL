@@ -300,6 +300,12 @@
       "name": "Renato",
       "password": "$2b$10$CSuiYP0JFwZPxnz3c3s7Z.pa9H3EQncGTSVmtL7Gr2wz2UjhBTq1K",
       "role": "Diretoria"
+    },
+    {
+      "id": "1f254eec-4e62-4a84-94d4-c127cfa390a9",
+      "name": "Gabriel",
+      "password": "$2b$10$7KuQOSBCA1ltmJA5gLh2NOOQnjIMTRaY.88bI.2EccwiKIOIVv5Za",
+      "role": "Diretoria"
     }
   ]
 }
