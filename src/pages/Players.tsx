@@ -210,18 +210,20 @@ export function Players() {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-zinc-500">Nível do Jogador (1 a 3)</label>
-              <select 
-                value={editingPlayer?.level || 1}
-                onChange={e => setEditingPlayer(prev => prev ? {...prev, level: Number(e.target.value)} : null)}
-                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 font-bold focus:outline-none focus:border-indigo-500 transition-colors"
-              >
-                <option value={1}>1 - Iniciante/Regular</option>
-                <option value={2}>2 - Bom/Intermediário</option>
-                <option value={3}>3 - Craque/Avançado</option>
-              </select>
-            </div>
+            {role === 'Diretoria' && (
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-zinc-500">Nível do Jogador (1 a 3)</label>
+                <select 
+                  value={editingPlayer?.level || 1}
+                  onChange={e => setEditingPlayer(prev => prev ? {...prev, level: Number(e.target.value)} : null)}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 font-bold focus:outline-none focus:border-indigo-500 transition-colors"
+                >
+                  <option value={1}>1 - Iniciante/Regular</option>
+                  <option value={2}>2 - Bom/Intermediário</option>
+                  <option value={3}>3 - Craque/Avançado</option>
+                </select>
+              </div>
+            )}
 
             <div className="md:col-span-2 flex flex-col sm:flex-row justify-end gap-4 mt-6">
               <button 
@@ -352,7 +354,7 @@ export function Players() {
               <tr>
                 <th className="px-6 py-5 font-bold">Nome</th>
                 <th className="px-6 py-5 font-bold">Posição</th>
-                <th className="px-6 py-5 font-bold">Nível</th>
+                {role === 'Diretoria' && <th className="px-6 py-5 font-bold">Nível</th>}
                 <th className="px-6 py-5 font-bold">Camisa</th>
                 <th className="px-6 py-5 font-bold">Idade/Nasc.</th>
                 {hasAccess && <th className="px-6 py-5 font-bold text-right">Ações</th>}
@@ -386,13 +388,15 @@ export function Players() {
                       {player.name}
                     </td>
                     <td className="px-6 py-4 text-zinc-400 font-bold">{player.position}</td>
-                    <td className="px-6 py-4 text-zinc-400 font-bold">
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: player.level || 1 }).map((_, i) => (
-                          <Star key={i} size={14} className="text-amber-400 fill-amber-400" />
-                        ))}
-                      </div>
-                    </td>
+                    {role === 'Diretoria' && (
+                      <td className="px-6 py-4 text-zinc-400 font-bold">
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: player.level || 1 }).map((_, i) => (
+                            <Star key={i} size={14} className="text-amber-400 fill-amber-400" />
+                          ))}
+                        </div>
+                      </td>
+                    )}
                     <td className="px-6 py-4 text-zinc-400 font-bold">{player.shirt_number || '-'}</td>
                     <td className="px-6 py-4 text-zinc-400 font-bold">{player.date_of_birth || '-'}</td>
                     {hasAccess && (

@@ -17,6 +17,7 @@ const getGitHubConfig = () => ({
 
 const defaultData = { players: [], monthly_payments: {}, game_stats: [], transactions: [] };
 let memoryData: any = null; // Fallback for missing token or cold starts
+let lastWriteTime = 0;
 
 async function readData() {
   const { token, repo, branch, filePath } = getGitHubConfig();
@@ -26,13 +27,20 @@ async function readData() {
     return memoryData || defaultData;
   }
 
+  // If we wrote data recently (within 10 seconds), trust memoryData to avoid GitHub API replication delay
+  if (memoryData && Date.now() - lastWriteTime < 10000) {
+    return memoryData;
+  }
+
   try {
-    const url = `https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}`;
+    const url = `https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}&t=${Date.now()}`;
     const res = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
+        'Accept': 'application/vnd.github.v3+json',
+        'Cache-Control': 'no-cache'
+      },
+      cache: 'no-store'
     });
 
     if (res.status === 404) {
@@ -58,6 +66,7 @@ async function writeData(data: any) {
   const { token, repo, branch, filePath } = getGitHubConfig();
   
   memoryData = data; // Update cache immediately
+  lastWriteTime = Date.now();
 
   if (!token) {
     console.warn('GITHUB_TOKEN não configurado. Salvando apenas em memória (será perdido ao reiniciar).');
@@ -69,11 +78,13 @@ async function writeData(data: any) {
     console.log(`[GitHub Sync] Tentando salvar em: ${url} na branch: ${branch}`);
     
     // 1. Obter o SHA atual do arquivo
-    const getRes = await fetch(`${url}?ref=${branch}`, {
+    const getRes = await fetch(`${url}?ref=${branch}&t=${Date.now()}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
+        'Accept': 'application/vnd.github.v3+json',
+        'Cache-Control': 'no-cache'
+      },
+      cache: 'no-store'
     });
 
     let sha = '';
@@ -273,14 +284,20 @@ app.delete('/api/transactions/:id', async (req, res) => {
 
 app.post('/api/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const username = req.body.username?.trim();
+    const password = req.body.password?.trim();
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required' });
+    }
+
     const data = await readData();
     
     if (!data.users) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const user = data.users.find((u: any) => u.name.toLowerCase() === username.toLowerCase());
+    const user = data.users.find((u: any) => u.name.trim().toLowerCase() === username.toLowerCase());
     
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -324,7 +341,11 @@ app.post('/api/users', async (req, res) => {
     // Hash password if provided and not already hashed (basic check)
     if (newUser.password && !newUser.password.startsWith('$2a$')) {
       const salt = await bcrypt.genSalt(10);
-      newUser.password = await bcrypt.hash(newUser.password, salt);
+      newUser.password = await bcrypt.hash(newUser.password.trim(), salt);
+    }
+    
+    if (newUser.name) {
+      newUser.name = newUser.name.trim();
     }
     
     const existingIndex = data.users.findIndex((u: any) => u.id === newUser.id);
