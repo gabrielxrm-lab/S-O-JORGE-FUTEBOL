@@ -294,12 +294,5 @@
   "monthly_payments": {},
   "game_stats": [],
   "transactions": [],
-  "users": [
-    {
-      "id": "958a83c7-9aa9-4754-947a-30cffd32b306",
-      "name": "gabriel",
-      "password": "$2b$10$pNr5uIUV0T8H/jINqLEexOPCdZjGYXKUMw.dvSpeLa40yYE88bYU6",
-      "role": "Membro"
-    }
-  ]
+  "users": []
 }
