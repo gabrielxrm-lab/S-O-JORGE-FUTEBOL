@@ -9,6 +9,12 @@
       "name": "Renato",
       "password": "$2b$10$bs2oZqz4sUAqBmeFmgWKhOqNBJJfSIjZsccBJef0Xc2wIp2VbFIlm",
       "role": "Diretoria"
+    },
+    {
+      "id": "a1dffcdb-2f6e-4cb4-81cb-5672d393304a",
+      "name": "Gabriel",
+      "password": "$2b$10$Uo/zta8KvB7lQss0oQBIMeOv6p2zWZCVRad6YqtN436gG1a9FVv62",
+      "role": "Diretoria"
     }
   ]
 }
