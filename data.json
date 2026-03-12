@@ -149,6 +149,16 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "12/03/2026"
+    },
+    {
+      "id": "b695486f-83fd-4eda-a7e0-06728e445643",
+      "name": "GABIGOL",
+      "position": "MEIO-CAMPO",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "12/03/2026"
     }
   ],
   "monthly_payments": {},
