@@ -209,6 +209,16 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "12/03/2026"
+    },
+    {
+      "id": "019f404e-18f3-4c68-9e7c-a418a2aaaccf",
+      "name": "ELISON ",
+      "position": "GOLEIRO",
+      "shirt_number": "1",
+      "date_of_birth": "23/05/1995",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "12/03/2026"
     }
   ],
   "monthly_payments": {},
