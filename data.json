@@ -169,6 +169,16 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "12/03/2026"
+    },
+    {
+      "id": "53cdab41-6e37-4766-affb-905f2410daf6",
+      "name": "IGOR",
+      "position": "MEIO-CAMPO",
+      "shirt_number": "",
+      "date_of_birth": "14/05/1988",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "12/03/2026"
     }
   ],
   "monthly_payments": {},
