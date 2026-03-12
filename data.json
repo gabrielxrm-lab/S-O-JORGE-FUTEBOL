@@ -249,6 +249,16 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "12/03/2026"
+    },
+    {
+      "id": "5ababf98-a4c1-4bd4-a77c-def1943ba708",
+      "name": "ROGÉRIO",
+      "position": "ZAGUEIRO",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "12/03/2026"
     }
   ],
   "monthly_payments": {},
