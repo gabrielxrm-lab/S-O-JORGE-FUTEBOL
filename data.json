@@ -1,0 +1,15 @@
+{
+  "players": [],
+  "monthly_payments": {},
+  "game_stats": [],
+  "transactions": [
+    {
+      "id": "284278f0-6991-487a-90cf-e4b1ff862ec7",
+      "date": "2026-03-12",
+      "description": "2 UNIDADES",
+      "type": "expense",
+      "category": "Bolas",
+      "amount": 120
+    }
+  ]
+}
