@@ -1,0 +1,165 @@
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { Home, Users, DollarSign, FileText, Dices, Trophy, LogOut, Key, X, User, Download } from 'lucide-react';
+import clsx from 'clsx';
+import { api } from '../lib/api';
+import toast from 'react-hot-toast';
+
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { role, userName, logout } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isDiretoria = role === 'Diretoria';
+  const isMembro = role === 'Membro';
+  const hasAccess = isDiretoria || isMembro;
+
+  const handleBackup = async () => {
+    try {
+      const data = await api.getData();
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href",     dataStr);
+      downloadAnchorNode.setAttribute("download", "sao_jorge_backup.json");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+      toast.success('Backup realizado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao realizar backup');
+    }
+  };
+
+  const navItems = [
+    { path: '/', label: 'Página Principal', icon: Home },
+    { path: '/players', label: 'Gerenciar Jogadores', icon: Users },
+    ...(isDiretoria ? [{ path: '/payments', label: 'Financeiro', icon: DollarSign }] : []),
+    { path: '/summary', label: 'Nova Súmula', icon: FileText },
+    { path: '/draw', label: 'Sorteio de Times', icon: Dices },
+    { path: '/ranking', label: 'Ranking', icon: Trophy },
+    { path: '/history', label: 'Histórico de Partidas', icon: FileText },
+    ...(isDiretoria ? [{ path: '/users', label: 'Gerenciar Acessos', icon: User }] : []),
+  ];
+
+  return (
+    <>
+      {/* Backdrop for mobile */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      <aside className={clsx(
+        "w-72 bg-[#0a0a0a]/95 backdrop-blur-xl text-zinc-100 flex flex-col h-screen fixed left-0 top-0 border-r border-white/5 shadow-2xl z-50 transition-transform duration-300 ease-in-out lg:translate-x-0",
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="p-6 flex flex-col items-center border-b border-white/5 relative overflow-hidden">
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 lg:hidden text-zinc-400 hover:text-white"
+          >
+            <X size={24} />
+          </button>
+          <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/10 to-transparent"></div>
+          <img 
+            src="https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/logo_sao_jorge.png" 
+            alt="Logo SJFC" 
+            className="w-24 h-24 object-contain mb-4 relative z-10 drop-shadow-2xl"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=SJFC';
+            }}
+          />
+          <h1 className="text-xl font-black text-center tracking-tight relative z-10">SÃO JORGE FC</h1>
+        </div>
+
+        <div className="p-4 border-b border-white/5">
+          <h2 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Perfil de Acesso</h2>
+          
+          {hasAccess ? (
+            <div className={`bg-${isDiretoria ? 'emerald' : 'indigo'}-500/10 border border-${isDiretoria ? 'emerald' : 'indigo'}-500/20 rounded-xl p-4 relative overflow-hidden`}>
+              <div className={`absolute top-0 left-0 w-1 h-full bg-${isDiretoria ? 'emerald' : 'indigo'}-500`}></div>
+              <p className={`text-${isDiretoria ? 'emerald' : 'indigo'}-400 text-sm font-bold mb-1`}>{userName}</p>
+              <p className="text-zinc-400 text-xs mb-3">Acesso: {role}</p>
+              <button 
+                onClick={logout}
+                className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-zinc-200 py-2 rounded-lg transition-colors text-sm font-medium border border-white/5"
+              >
+                <LogOut size={16} />
+                Sair da Conta
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white/5 border border-white/5 rounded-xl p-4">
+              <p className="text-zinc-400 text-sm mb-3 font-medium">Modo Jogador (Visualização)</p>
+              <button 
+                onClick={() => {
+                  navigate('/login');
+                  if (window.innerWidth < 1024) onClose();
+                }}
+                className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-lg transition-colors text-sm font-bold shadow-lg shadow-indigo-500/20"
+              >
+                <Key size={16} />
+                Fazer Login
+              </button>
+            </div>
+          )}
+        </div>
+
+        <nav className="flex-1 overflow-y-auto py-4">
+          <ul className="space-y-1 px-3">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
+              
+              return (
+                <li key={item.path}>
+                  <Link 
+                    to={item.path}
+                    onClick={() => {
+                      if (window.innerWidth < 1024) onClose();
+                    }}
+                    className={clsx(
+                      "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-bold",
+                      isActive 
+                        ? "bg-gradient-to-r from-indigo-600/20 to-violet-600/10 text-indigo-400 border-l-2 border-indigo-500" 
+                        : "text-zinc-400 hover:bg-white/5 hover:text-zinc-100 border-l-2 border-transparent"
+                    )}
+                  >
+                    <Icon size={18} />
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {isDiretoria && (
+          <div className="px-4 pb-4">
+            <button
+              onClick={handleBackup}
+              className="w-full flex items-center justify-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 py-2 rounded-xl transition-colors text-sm font-bold"
+            >
+              <Download size={16} />
+              Fazer Backup dos Dados
+            </button>
+          </div>
+        )}
+
+        <div className="p-4 border-t border-white/5 text-xs text-zinc-500 text-center bg-black/20">
+          <p>Desenvolvido por:</p>
+          <p className="font-bold text-zinc-300 mt-1">Gabriel Conrado</p>
+          <p className="font-medium">📱 (21) 97275-7256</p>
+        </div>
+      </aside>
+    </>
+  );
+}
