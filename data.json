@@ -285,5 +285,12 @@
   "monthly_payments": {},
   "game_stats": [],
   "transactions": [],
-  "users": []
+  "users": [
+    {
+      "id": "fc8b538e-dd4a-4967-9fda-6201b81def03",
+      "name": "Gabriel",
+      "password": "$2b$10$3ze9DA8mnHZIOYjshLwWNuh0jQxdUs.vVLGA1kp6AF1FVg/e7PL.e",
+      "role": "Diretoria"
+    }
+  ]
 }
