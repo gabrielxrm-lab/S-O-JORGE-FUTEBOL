@@ -284,7 +284,16 @@
   ],
   "monthly_payments": {},
   "game_stats": [],
-  "transactions": [],
+  "transactions": [
+    {
+      "id": "340d0ae4-1fa3-4a6a-89cc-86a24b63c429",
+      "date": "2026-03-17",
+      "description": "Compra de Gesso para Marcação do Campo",
+      "type": "expense",
+      "category": "Outros",
+      "amount": 39
+    }
+  ],
   "users": [
     {
       "id": "fc8b538e-dd4a-4967-9fda-6201b81def03",
