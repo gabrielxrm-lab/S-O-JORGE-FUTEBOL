@@ -2,18 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api, User } from '../lib/api';
 import { motion } from 'motion/react';
-import { Users as UsersIcon, Plus, Trash2, Shield, User as UserIcon, Lock } from 'lucide-react';
+import { Users as UsersIcon, Plus, Trash2, Shield, User as UserIcon, Lock, Edit2, CheckSquare, Square } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+
+const AVAILABLE_PERMISSIONS = [
+  { id: 'players', label: 'Gerenciar Jogadores' },
+  { id: 'payments', label: 'Financeiro' },
+  { id: 'matches', label: 'Súmulas e Histórico' },
+  { id: 'draw', label: 'Sorteio de Times' },
+  { id: 'ranking', label: 'Ranking' },
+  { id: 'users', label: 'Gerenciar Acessos' }
+];
 
 export function Users() {
   const { role } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<User>>({
     name: '',
     password: '',
-    role: 'Membro'
+    role: 'Membro',
+    permissions: []
   });
 
   useEffect(() => {
@@ -31,22 +42,42 @@ export function Users() {
     }
   };
 
+  const handleOpenModal = (user?: User) => {
+    if (user) {
+      setEditingUserId(user.id);
+      setFormData({
+        name: user.name,
+        password: '', // Don't show existing password
+        role: user.role,
+        permissions: user.permissions || []
+      });
+    } else {
+      setEditingUserId(null);
+      setFormData({ name: '', password: '', role: 'Membro', permissions: [] });
+    }
+    setShowModal(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.password || !formData.role) return;
+    if (!formData.name || !formData.role) return;
+    if (!editingUserId && !formData.password) return; // Password required for new users
 
     try {
-      const newUser: User = {
-        id: uuidv4(),
+      const userToSave: User = {
+        id: editingUserId || uuidv4(),
         name: formData.name,
-        password: formData.password,
-        role: formData.role as 'Diretoria' | 'Membro'
+        role: formData.role as 'Diretoria' | 'Membro',
+        permissions: formData.permissions
       };
 
-      await api.saveUser(newUser);
+      if (formData.password) {
+        userToSave.password = formData.password;
+      }
+
+      await api.saveUser(userToSave);
       await loadUsers();
       setShowModal(false);
-      setFormData({ name: '', password: '', role: 'Membro' });
     } catch (error) {
       console.error('Failed to save user:', error);
       alert('Erro ao salvar usuário');
@@ -65,6 +96,19 @@ export function Users() {
     }
   };
 
+  const togglePermission = (permId: string) => {
+    setFormData(prev => {
+      const current = prev.permissions || [];
+      if (current.includes('all')) return prev; // If they have 'all', don't toggle
+      
+      const updated = current.includes(permId)
+        ? current.filter(p => p !== permId)
+        : [...current, permId];
+        
+      return { ...prev, permissions: updated };
+    });
+  };
+
   if (role !== 'Diretoria') {
     return (
       <div className="flex items-center justify-center h-full">
@@ -81,7 +125,7 @@ export function Users() {
           <p className="text-zinc-400 mt-1">Controle quem pode acessar o sistema</p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => handleOpenModal()}
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl font-bold transition-colors shadow-lg shadow-indigo-500/20"
         >
           <Plus size={20} />
@@ -135,6 +179,13 @@ export function Users() {
                     </td>
                     <td className="p-4 text-right">
                       <button
+                        onClick={() => handleOpenModal(user)}
+                        className="p-2 text-zinc-500 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-lg transition-colors mr-2"
+                        title="Editar usuário"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button
                         onClick={() => handleDelete(user.id)}
                         className="p-2 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                         title="Excluir usuário"
@@ -151,14 +202,14 @@ export function Users() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+            className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl my-8"
           >
             <div className="p-6 border-b border-white/5">
-              <h2 className="text-xl font-black">Novo Acesso</h2>
+              <h2 className="text-xl font-black">{editingUserId ? 'Editar Acesso' : 'Novo Acesso'}</h2>
             </div>
             
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -180,14 +231,16 @@ export function Users() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Senha</label>
+                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                  {editingUserId ? 'Nova Senha (deixe em branco para manter)' : 'Senha'}
+                </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Lock size={18} className="text-zinc-500" />
                   </div>
                   <input
                     type="password"
-                    required
+                    required={!editingUserId}
                     value={formData.password}
                     onChange={e => setFormData({...formData, password: e.target.value})}
                     className="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
@@ -206,6 +259,32 @@ export function Users() {
                   <option value="Membro">Membro (Acesso Parcial)</option>
                   <option value="Diretoria">Diretoria (Acesso Total)</option>
                 </select>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Permissões de Edição</label>
+                <div className="grid grid-cols-1 gap-2 bg-black/30 p-4 rounded-xl border border-white/5">
+                  {AVAILABLE_PERMISSIONS.map(perm => {
+                    const hasPerm = formData.permissions?.includes('all') || formData.permissions?.includes(perm.id);
+                    return (
+                      <button
+                        key={perm.id}
+                        type="button"
+                        onClick={() => togglePermission(perm.id)}
+                        className="flex items-center gap-3 text-left hover:bg-white/5 p-2 rounded-lg transition-colors"
+                      >
+                        {hasPerm ? (
+                          <CheckSquare size={20} className="text-indigo-500 flex-shrink-0" />
+                        ) : (
+                          <Square size={20} className="text-zinc-500 flex-shrink-0" />
+                        )}
+                        <span className={`text-sm font-medium ${hasPerm ? 'text-zinc-200' : 'text-zinc-500'}`}>
+                          {perm.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="flex gap-3 pt-4">
@@ -230,3 +309,4 @@ export function Users() {
     </div>
   );
 }
+

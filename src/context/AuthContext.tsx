@@ -6,6 +6,7 @@ type Role = 'Jogador' | 'Membro' | 'Diretoria';
 interface AuthContextType {
   role: Role;
   userName: string | null;
+  permissions: string[];
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
@@ -15,6 +16,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<Role>('Jogador');
   const [userName, setUserName] = useState<string | null>(null);
+  const [permissions, setPermissions] = useState<string[]>([]);
 
   const login = async (username: string, password: string) => {
     const correctPassword = import.meta.env.VITE_DIRETORIA_PASSWORD || 'admin123';
@@ -23,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (username.toLowerCase() === 'admin' && password === correctPassword) {
       setRole('Diretoria');
       setUserName('Admin');
+      setPermissions(['all']);
       return true;
     }
 
@@ -39,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { user } = await res.json();
         setRole(user.role);
         setUserName(user.name);
+        setPermissions(user.permissions || (user.role === 'Diretoria' ? ['all'] : []));
         return true;
       }
     } catch (error) {
@@ -51,10 +55,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setRole('Jogador');
     setUserName(null);
+    setPermissions([]);
   };
 
   return (
-    <AuthContext.Provider value={{ role, userName, login, logout }}>
+    <AuthContext.Provider value={{ role, userName, permissions, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

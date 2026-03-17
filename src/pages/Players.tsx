@@ -140,7 +140,7 @@ export function Players() {
     reader.readAsDataURL(file);
   };
 
-  const existingPhotos = Array.from(new Set(data?.players.map(p => p.photo_file).filter(p => p && p !== 'Nenhuma'))) || [];
+  const existingPhotos = Array.from(new Set(data?.players?.map(p => p.photo_file).filter(p => p && p !== 'Nenhuma') || [])) as string[];
 
   if (loading) {
     return <LoadingSpinner fullScreen />;

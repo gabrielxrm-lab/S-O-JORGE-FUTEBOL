@@ -12,13 +12,19 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { role, userName, logout } = useAuth();
+  const { role, userName, permissions, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   const isDiretoria = role === 'Diretoria';
   const isMembro = role === 'Membro';
   const hasAccess = isDiretoria || isMembro;
+
+  const canAccess = (module: string) => {
+    if (permissions.includes('all')) return true;
+    if (permissions.length > 0) return permissions.includes(module);
+    return isDiretoria; // Fallback for old users
+  };
 
   const handleBackup = async () => {
     try {
@@ -37,15 +43,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   };
 
   const navItems = [
-    { path: '/', label: 'Página Principal', icon: Home },
-    { path: '/players', label: 'Gerenciar Jogadores', icon: Users },
-    ...(isDiretoria ? [{ path: '/payments', label: 'Financeiro', icon: DollarSign }] : []),
-    { path: '/summary', label: 'Nova Súmula', icon: FileText },
-    { path: '/draw', label: 'Sorteio de Times', icon: Dices },
-    { path: '/ranking', label: 'Ranking', icon: Trophy },
-    { path: '/history', label: 'Histórico de Partidas', icon: FileText },
-    ...(isDiretoria ? [{ path: '/users', label: 'Gerenciar Acessos', icon: User }] : []),
-  ];
+    { path: '/', label: 'Página Principal', icon: Home, show: true },
+    { path: '/players', label: 'Gerenciar Jogadores', icon: Users, show: canAccess('players') },
+    { path: '/payments', label: 'Financeiro', icon: DollarSign, show: canAccess('payments') },
+    { path: '/summary', label: 'Nova Súmula', icon: FileText, show: canAccess('matches') },
+    { path: '/draw', label: 'Sorteio de Times', icon: Dices, show: canAccess('draw') },
+    { path: '/ranking', label: 'Ranking', icon: Trophy, show: canAccess('ranking') },
+    { path: '/history', label: 'Histórico de Partidas', icon: FileText, show: canAccess('matches') },
+    { path: '/users', label: 'Gerenciar Acessos', icon: User, show: canAccess('users') },
+  ].filter(item => item.show);
 
   return (
     <>
