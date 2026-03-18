@@ -18,10 +18,17 @@ const getGitHubConfig = () => ({
 
 const defaultData = { players: [], monthly_payments: {}, game_stats: [], transactions: [] };
 let memoryData: any = null; // Fallback for missing token or cold starts
+let isInitialized = false;
 let lastWriteTime = 0;
 const LOCAL_DATA_FILE = path.join(process.cwd(), 'data.json');
 
 async function readData() {
+  // If we already have data in memory, just return it.
+  // This prevents overwriting local changes if GitHub sync fails.
+  if (isInitialized && memoryData) {
+    return memoryData;
+  }
+
   const { token, repo, branch, filePath } = getGitHubConfig();
   
   // Try to read from local file first as a reliable fallback
@@ -30,6 +37,8 @@ async function readData() {
     const localData = JSON.parse(localContent);
     if (localData && localData.players) {
       memoryData = localData;
+      isInitialized = true;
+      return memoryData;
     }
   } catch (err) {
     // File might not exist yet, that's fine
@@ -37,11 +46,8 @@ async function readData() {
 
   if (!token) {
     console.warn('GITHUB_TOKEN não configurado. Retornando dados em memória (somente leitura).');
-    return memoryData || defaultData;
-  }
-
-  // If we wrote data recently (within 10 seconds), trust memoryData to avoid GitHub API replication delay
-  if (memoryData && Date.now() - lastWriteTime < 10000) {
+    isInitialized = true;
+    memoryData = memoryData || defaultData;
     return memoryData;
   }
 
@@ -57,7 +63,9 @@ async function readData() {
     });
 
     if (res.status === 404) {
-      return memoryData || defaultData;
+      isInitialized = true;
+      memoryData = memoryData || defaultData;
+      return memoryData;
     }
 
     if (!res.ok) {
@@ -68,6 +76,7 @@ async function readData() {
     const content = Buffer.from(fileData.content, 'base64').toString('utf-8');
     const parsedData = JSON.parse(content);
     memoryData = parsedData; // Cache it
+    isInitialized = true;
     
     // Save to local file as backup
     await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(parsedData, null, 2)).catch(() => {});
@@ -75,7 +84,9 @@ async function readData() {
     return parsedData;
   } catch (error) {
     console.error('Erro ao ler dados do GitHub:', error);
-    return memoryData || defaultData;
+    isInitialized = true;
+    memoryData = memoryData || defaultData;
+    return memoryData;
   }
 }
 
