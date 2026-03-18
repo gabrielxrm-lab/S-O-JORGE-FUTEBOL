@@ -79,6 +79,9 @@ async function readData() {
   }
 }
 
+let isWriting = false;
+let writeQueue: (() => void)[] = [];
+
 async function writeData(data: any) {
   const { token, repo, branch, filePath } = getGitHubConfig();
   
@@ -97,6 +100,33 @@ async function writeData(data: any) {
     return;
   }
 
+  // Mutex to prevent concurrent writes to GitHub
+  if (isWriting) {
+    return new Promise<void>((resolve, reject) => {
+      writeQueue.push(async () => {
+        try {
+          await performGitHubWrite(data, token, repo, branch, filePath);
+          resolve();
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+  }
+
+  isWriting = true;
+  try {
+    await performGitHubWrite(data, token, repo, branch, filePath);
+  } finally {
+    isWriting = false;
+    if (writeQueue.length > 0) {
+      const next = writeQueue.shift();
+      if (next) next();
+    }
+  }
+}
+
+async function performGitHubWrite(data: any, token: string, repo: string, branch: string, filePath: string) {
   try {
     const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
     console.log(`[GitHub Sync] Tentando salvar em: ${url} na branch: ${branch}`);
@@ -329,7 +359,7 @@ app.post('/api/login', async (req, res) => {
 
     // Check if password matches (either bcrypt or plain text for legacy users)
     let isMatch = false;
-    if (user.password && user.password.startsWith('$2a$')) {
+    if (user.password && user.password.startsWith('$2')) {
       isMatch = await bcrypt.compare(password, user.password);
     } else {
       // Legacy plain text password
@@ -363,7 +393,7 @@ app.post('/api/users', async (req, res) => {
     const newUser = req.body;
     
     // Hash password if provided and not already hashed (basic check)
-    if (newUser.password && !newUser.password.startsWith('$2a$')) {
+    if (newUser.password && !newUser.password.startsWith('$2')) {
       const salt = await bcrypt.genSalt(10);
       newUser.password = await bcrypt.hash(newUser.password.trim(), salt);
     }

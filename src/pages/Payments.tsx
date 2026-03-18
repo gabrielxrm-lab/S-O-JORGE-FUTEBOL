@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api, AppData, Transaction, Player } from '../lib/api';
 import { motion } from 'motion/react';
+import { v4 as uuidv4 } from 'uuid';
 import { Save, CheckCircle2, XCircle, MessageCircle, Wallet, TrendingUp, TrendingDown, Plus, Trash2, FileText } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import jsPDF from 'jspdf';
@@ -62,10 +63,10 @@ export function Payments() {
       };
       const fullMonth = fullMonthNames[monthName] || monthName;
       
-      const amountStr = window.prompt(`Qual o valor da mensalidade de ${player.name} para ${fullMonth}?`, "50");
+      const amountStr = window.prompt(`Qual o valor da mensalidade de ${player.name} para ${fullMonth}?`, "35");
       if (amountStr === null) return; // Cancelled
       
-      const amount = parseFloat(amountStr.replace(',', '.')) || 50;
+      const amount = parseFloat(amountStr.replace(',', '.')) || 35;
       
       const newPayments = {
         ...payments,
@@ -77,7 +78,7 @@ export function Payments() {
       setPayments(newPayments);
       
       const tx: Transaction = {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         date: new Date().toISOString().split('T')[0],
         description: `${player.name} - MENSALIDADE ${fullMonth.toUpperCase()}`,
         type: 'income',
@@ -133,7 +134,7 @@ export function Payments() {
     }
     
     const tx: Transaction = {
-      id: newTx.id || crypto.randomUUID(),
+      id: newTx.id || uuidv4(),
       date: newTx.date || new Date().toISOString().split('T')[0],
       description: newTx.description,
       type: newTx.type as 'income' | 'expense',
