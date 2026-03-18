@@ -41,7 +41,8 @@
         "3": "Paga"
       },
       "370cfd2f-2cef-4c72-b89b-861d72015497": {
-        "2": "Paga"
+        "2": "Paga",
+        "3": "Paga"
       }
     }
   },
@@ -59,6 +60,22 @@
       "id": "546122a6-3e9e-4f7b-8d95-aae1833f0bc4",
       "date": "2026-03-18",
       "description": "ALEX - MENSALIDADE FEVEREIRO",
+      "type": "income",
+      "category": "Mensalidade",
+      "amount": 35
+    },
+    {
+      "id": "7b0329c5-4d59-4109-bc43-0c067f058b3c",
+      "date": "2026-03-18",
+      "description": "RENATO - MENSALIDADE MARÇO",
+      "type": "income",
+      "category": "Mensalidade",
+      "amount": 35
+    },
+    {
+      "id": "9cec498f-4658-4a55-80d1-e96664dcc981",
+      "date": "2026-03-18",
+      "description": "ALEX - MENSALIDADE MARÇO",
       "type": "income",
       "category": "Mensalidade",
       "amount": 35
