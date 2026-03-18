@@ -286,17 +286,20 @@
     "2026": {
       "94d6d5ac-d98a-47f1-b51f-ec07df1ca339": {
         "3": "Paga"
-      },
-      "a34e8a93-0666-4724-8334-394d43509058": {
-        "4": "Paga"
-      },
-      "9866efbf-29ab-456d-97a6-cc0d2aa711f1": {
-        "4": "Paga"
       }
     }
   },
   "game_stats": [],
-  "transactions": [],
+  "transactions": [
+    {
+      "id": "bb9b52e2-9d5e-4831-8375-b9d36d098b14",
+      "date": "2026-03-18",
+      "description": "ALEX - MENSALIDADE ABRIL",
+      "type": "income",
+      "category": "Mensalidade",
+      "amount": 35
+    }
+  ],
   "users": [
     {
       "id": "4fd1f15f-7b5b-4890-8447-f2bb106b9f01",
