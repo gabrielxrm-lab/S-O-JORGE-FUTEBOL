@@ -72,6 +72,26 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "18/03/2026"
+    },
+    {
+      "id": "f98ef52f-22be-416e-a02f-6b64ab179864",
+      "name": "DANIEL",
+      "position": "ATACANTE",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "18/03/2026"
+    },
+    {
+      "id": "95f8999a-450b-457f-83ca-250acd9e8650",
+      "name": "ROGÉRIO",
+      "position": "ATACANTE",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "18/03/2026"
     }
   ],
   "monthly_payments": {
