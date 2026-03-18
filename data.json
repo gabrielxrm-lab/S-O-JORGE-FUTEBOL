@@ -282,18 +282,18 @@
       "team_start_date": "12/03/2026"
     }
   ],
-  "monthly_payments": {
-    "2026": {
-      "94d6d5ac-d98a-47f1-b51f-ec07df1ca339": {
-        "3": "Paga"
-      },
-      "9866efbf-29ab-456d-97a6-cc0d2aa711f1": {
-        "3": "Paga"
-      }
-    }
-  },
+  "monthly_payments": {},
   "game_stats": [],
-  "transactions": [],
+  "transactions": [
+    {
+      "id": "16d52a4a-8fad-4931-a6e3-1003cb1ece4f",
+      "date": "2026-03-18",
+      "description": "ALEX - MENSALIDADE MARÇO",
+      "type": "income",
+      "category": "Mensalidade",
+      "amount": 35
+    }
+  ],
   "users": [
     {
       "id": "2ec95f4a-ea90-4dd8-92c9-248c00f573f8",
