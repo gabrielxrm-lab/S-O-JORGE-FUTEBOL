@@ -197,7 +197,173 @@
       }
     }
   },
-  "game_stats": [],
+  "game_stats": [
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "BAIANO",
+      "goals": 0,
+      "yellow_cards": 1,
+      "red_cards": 0,
+      "craque_do_jogo": 0,
+      "goleiro_do_jogo": 0,
+      "gol_do_jogo": 0
+    },
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "ZAZÁ",
+      "goals": 2,
+      "yellow_cards": 0,
+      "red_cards": 0,
+      "craque_do_jogo": 0,
+      "goleiro_do_jogo": 0,
+      "gol_do_jogo": 0
+    },
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "ALEX",
+      "goals": 2,
+      "yellow_cards": 1,
+      "red_cards": 0,
+      "craque_do_jogo": 0,
+      "goleiro_do_jogo": 0,
+      "gol_do_jogo": 0
+    },
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "BRUNO",
+      "goals": 2,
+      "yellow_cards": 0,
+      "red_cards": 0,
+      "craque_do_jogo": 0,
+      "goleiro_do_jogo": 0,
+      "gol_do_jogo": 0
+    },
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "THIAGO",
+      "goals": 1,
+      "yellow_cards": 0,
+      "red_cards": 0,
+      "craque_do_jogo": 0,
+      "goleiro_do_jogo": 0,
+      "gol_do_jogo": 0
+    },
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "DANIEL",
+      "goals": 5,
+      "yellow_cards": 0,
+      "red_cards": 0,
+      "craque_do_jogo": 0,
+      "goleiro_do_jogo": 0,
+      "gol_do_jogo": 1
+    },
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "IGOR",
+      "goals": 3,
+      "yellow_cards": 0,
+      "red_cards": 0,
+      "craque_do_jogo": 0,
+      "goleiro_do_jogo": 0,
+      "gol_do_jogo": 0
+    },
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "LEANDRO",
+      "goals": 1,
+      "yellow_cards": 0,
+      "red_cards": 0,
+      "craque_do_jogo": 0,
+      "goleiro_do_jogo": 0,
+      "gol_do_jogo": 0
+    },
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "DANRLEY",
+      "goals": 2,
+      "yellow_cards": 0,
+      "red_cards": 0,
+      "craque_do_jogo": 0,
+      "goleiro_do_jogo": 0,
+      "gol_do_jogo": 1
+    },
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "CHRISTIAN",
+      "goals": 0,
+      "yellow_cards": 1,
+      "red_cards": 0,
+      "craque_do_jogo": 0,
+      "goleiro_do_jogo": 0,
+      "gol_do_jogo": 0
+    },
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "EDSON",
+      "goals": 0,
+      "yellow_cards": 1,
+      "red_cards": 0,
+      "craque_do_jogo": 0,
+      "goleiro_do_jogo": 0,
+      "gol_do_jogo": 0
+    },
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "BAIANINHO",
+      "goals": 0,
+      "yellow_cards": 0,
+      "red_cards": 0,
+      "craque_do_jogo": 1,
+      "goleiro_do_jogo": 0,
+      "gol_do_jogo": 0
+    },
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "RENATO",
+      "goals": 0,
+      "yellow_cards": 0,
+      "red_cards": 0,
+      "craque_do_jogo": 1,
+      "goleiro_do_jogo": 0,
+      "gol_do_jogo": 0
+    },
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "ELISSON",
+      "goals": 0,
+      "yellow_cards": 0,
+      "red_cards": 0,
+      "craque_do_jogo": 0,
+      "goleiro_do_jogo": 1,
+      "gol_do_jogo": 0
+    },
+    {
+      "date": "17/03/2026",
+      "game_date": "2026-03-18",
+      "player_name": "GABRIEL",
+      "goals": 0,
+      "yellow_cards": 0,
+      "red_cards": 0,
+      "craque_do_jogo": 0,
+      "goleiro_do_jogo": 1,
+      "gol_do_jogo": 0
+    }
+  ],
   "transactions": [
     {
       "id": "28138d0f-fccb-42e2-862d-0f7b843c9c78",
