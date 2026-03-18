@@ -18,7 +18,15 @@ const getGitHubConfig = () => ({
   filePath: 'data.json'
 });
 
-const defaultData = { players: [], monthly_payments: {}, game_stats: [], transactions: [], users: [], matches: [] };
+const defaultData = { 
+  players: [], 
+  monthly_payments: {}, 
+  game_stats: [], 
+  transactions: [], 
+  users: [], 
+  matches: [] 
+};
+
 let memoryData: any = null;
 let isInitialized = false;
 const LOCAL_DATA_FILE = path.join(process.cwd(), 'data.json');
@@ -28,71 +36,61 @@ async function readData() {
     return memoryData;
   }
 
+  let dataFromFile: any = {};
+
   try {
     const localContent = await fs.readFile(LOCAL_DATA_FILE, 'utf-8');
-    const localData = JSON.parse(localContent);
-    if (localData && (localData.players || localData.users)) {
-      memoryData = localData;
-      isInitialized = true;
-      return memoryData;
-    }
+    dataFromFile = JSON.parse(localContent);
   } catch (err) {
-    console.log('[Storage] Iniciando com dados padrão ou GitHub...');
-  }
+    console.log('[Storage] Arquivo local não encontrado, tentando GitHub...');
+    
+    const { token, repo, branch, filePath } = getGitHubConfig();
+    if (token) {
+      try {
+        const url = `https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}&t=${Date.now()}`;
+        const res = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Cache-Control': 'no-cache'
+          }
+        });
 
-  const { token, repo, branch, filePath } = getGitHubConfig();
-  
-  if (!token) {
-    isInitialized = true;
-    memoryData = memoryData || defaultData;
-    return memoryData;
-  }
-
-  try {
-    const url = `https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}&t=${Date.now()}`;
-    const res = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Cache-Control': 'no-cache'
+        if (res.ok) {
+          const fileData = await res.json();
+          const content = Buffer.from(fileData.content, 'base64').toString('utf-8');
+          dataFromFile = JSON.parse(content);
+        }
+      } catch (error) {
+        console.error('[GitHub] Erro ao ler dados:', error);
       }
-    });
-
-    if (res.status === 404) {
-      isInitialized = true;
-      memoryData = memoryData || defaultData;
-      return memoryData;
     }
-
-    const fileData = await res.json();
-    const content = Buffer.from(fileData.content, 'base64').toString('utf-8');
-    const parsedData = JSON.parse(content);
-    memoryData = parsedData;
-    isInitialized = true;
-    
-    await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(parsedData, null, 2)).catch(() => {});
-    
-    return parsedData;
-  } catch (error) {
-    isInitialized = true;
-    memoryData = memoryData || defaultData;
-    return memoryData;
   }
+
+  // IMPORTANTE: Mesclar com defaultData para garantir que todas as chaves existam
+  memoryData = { ...defaultData, ...dataFromFile };
+  isInitialized = true;
+  
+  // Salva localmente para garantir consistência
+  await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(memoryData, null, 2)).catch(() => {});
+  
+  return memoryData;
 }
 
 async function writeData(data: any) {
-  // Atualiza a memória imediatamente para evitar race conditions
-  memoryData = JSON.parse(JSON.stringify(data));
+  // Garante que estamos salvando um objeto completo mesclando com o que já temos em memória
+  const updatedData = { ...defaultData, ...memoryData, ...data };
+  memoryData = JSON.parse(JSON.stringify(updatedData));
   
   try {
-    await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(data, null, 2));
+    await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(memoryData, null, 2));
   } catch (err) {
     console.error('[Storage] Erro ao salvar localmente:', err);
   }
 
   const { token, repo, branch, filePath } = getGitHubConfig();
   if (token) {
-    performGitHubWrite(data, token, repo, branch, filePath).catch(err => {
+    performGitHubWrite(memoryData, token, repo, branch, filePath).catch(err => {
       console.error('[GitHub] Erro na sincronização:', err.message);
     });
   }
@@ -151,7 +149,9 @@ app.post('/api/data/restore', async (req, res) => {
     if (!newData.players || !Array.isArray(newData.players)) {
       return res.status(400).json({ error: 'Formato de dados inválido' });
     }
-    await writeData(newData);
+    // No restore, substituímos tudo, mas garantimos as chaves básicas
+    memoryData = { ...defaultData, ...newData };
+    await writeData(memoryData);
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao restaurar dados' });
@@ -166,9 +166,6 @@ app.post('/api/players', async (req, res) => {
     if (!newPlayer.id) {
       return res.status(400).json({ error: 'ID do jogador é obrigatório' });
     }
-
-    // Garantir que players seja um array
-    if (!Array.isArray(data.players)) data.players = [];
 
     const existingIndex = data.players.findIndex((p: any) => p.id === newPlayer.id);
     
@@ -206,7 +203,6 @@ app.post('/api/payments', async (req, res) => {
   try {
     const data = await readData();
     const { year, payments } = req.body;
-    if (!data.monthly_payments) data.monthly_payments = {};
     data.monthly_payments[year] = payments;
     await writeData(data);
     res.json({ success: true });
@@ -219,7 +215,6 @@ app.put('/api/payments/single', async (req, res) => {
   try {
     const data = await readData();
     const { year, playerId, month, status } = req.body;
-    if (!data.monthly_payments) data.monthly_payments = {};
     if (!data.monthly_payments[year]) data.monthly_payments[year] = {};
     if (!data.monthly_payments[year][playerId]) data.monthly_payments[year][playerId] = {};
     data.monthly_payments[year][playerId][month] = status;
@@ -244,7 +239,6 @@ app.post('/api/stats', async (req, res) => {
 app.post('/api/matches', async (req, res) => {
   try {
     const data = await readData();
-    if (!data.matches) data.matches = [];
     data.matches.push(req.body);
     await writeData(data);
     res.json({ success: true });
@@ -290,7 +284,6 @@ app.put('/api/stats/player', async (req, res) => {
 app.post('/api/transactions', async (req, res) => {
   try {
     const data = await readData();
-    if (!data.transactions) data.transactions = [];
     const newTx = req.body;
     const idx = data.transactions.findIndex((t: any) => t.id === newTx.id);
     if (idx >= 0) data.transactions[idx] = newTx;
@@ -339,7 +332,6 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/users', async (req, res) => {
   try {
     const data = await readData();
-    if (!data.users) data.users = [];
     const newUser = req.body;
     if (newUser.password && !newUser.password.startsWith('$2')) {
       newUser.password = await bcrypt.hash(newUser.password, 10);
