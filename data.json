@@ -291,6 +291,14 @@
       "name": "Gabriel",
       "password": "$2b$10$uD78vOKQLMhnRDEWNQjPneGYsojmdVFWLGsgTti9to13xqlShJ8Xy",
       "role": "Diretoria"
+    },
+    {
+      "id": "4fd1f15f-7b5b-4890-8447-f2bb106b9f01",
+      "name": "Renato",
+      "role": "Membro",
+      "permissions": [],
+      "photo_file": "",
+      "password": "$2b$10$BfQrucCo5n9tlCaGndEMR.CrE2bXluhZ7KtGaG35xKypmxvdzUx0i"
     }
   ]
 }
