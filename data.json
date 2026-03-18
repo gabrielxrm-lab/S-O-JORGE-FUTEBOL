@@ -92,6 +92,26 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "18/03/2026"
+    },
+    {
+      "id": "0835625d-fed2-4b86-9ffa-1ce9e1e2eeb3",
+      "name": "GABIGOL",
+      "position": "ATACANTE",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "18/03/2026"
+    },
+    {
+      "id": "3a06a6b7-49e2-4baa-a996-ed245299f6bd",
+      "name": "LUCINHO",
+      "position": "ATACANTE",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "18/03/2026"
     }
   ],
   "monthly_payments": {
