@@ -10,6 +10,28 @@
       "photo_file": "Nenhuma",
       "team_start_date": "17/03/2026",
       "level": 3
+    },
+    {
+      "id": "17f340fe-a2a2-47a0-9efd-87c71ed355a5",
+      "name": "RENATO",
+      "position": "MEIO-CAMPO",
+      "shirt_number": "8",
+      "date_of_birth": "24/10/1988",
+      "phone": "21 97140-0676",
+      "photo_file": "Nenhuma",
+      "team_start_date": "18/03/2026",
+      "level": 3
+    },
+    {
+      "id": "370cfd2f-2cef-4c72-b89b-861d72015497",
+      "name": "ALEX",
+      "position": "ATACANTE",
+      "shirt_number": "17",
+      "date_of_birth": "11/01/1999",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "18/03/2026",
+      "level": 2
     }
   ],
   "monthly_payments": {},
