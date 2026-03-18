@@ -52,6 +52,26 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "18/03/2026"
+    },
+    {
+      "id": "20900d10-cd99-4680-8b9a-b0c7dafa52cf",
+      "name": "BABY",
+      "position": "LATERAL",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "18/03/2026"
+    },
+    {
+      "id": "5983a9cc-d0fd-4e02-86c8-da48c7075657",
+      "name": "ZAZÁ",
+      "position": "MEIO-CAMPO",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "18/03/2026"
     }
   ],
   "monthly_payments": {
