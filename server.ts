@@ -7,10 +7,11 @@ import fs from 'fs/promises';
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+// Aumentando o limite para suportar fotos em Base64 (50mb é seguro para este uso)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 const getGitHubConfig = () => ({
-  // Prioriza variáveis de ambiente para segurança
   token: process.env.GITHUB_TOKEN || '', 
   repo: process.env.GITHUB_REPO || 'gabrielxrm-lab/S-O-JORGE-FUTEBOL',
   branch: process.env.GITHUB_BRANCH || 'main',
@@ -27,24 +28,21 @@ async function readData() {
     return memoryData;
   }
 
-  // Tenta ler do arquivo local primeiro (mais rápido e confiável para persistência local)
   try {
     const localContent = await fs.readFile(LOCAL_DATA_FILE, 'utf-8');
     const localData = JSON.parse(localContent);
     if (localData && (localData.players || localData.users)) {
       memoryData = localData;
       isInitialized = true;
-      console.log('[Storage] Dados carregados do arquivo local.');
       return memoryData;
     }
   } catch (err) {
-    console.log('[Storage] Arquivo local não encontrado ou vazio, tentando GitHub...');
+    console.log('[Storage] Iniciando com dados padrão ou GitHub...');
   }
 
   const { token, repo, branch, filePath } = getGitHubConfig();
   
   if (!token) {
-    console.warn('[GitHub] GITHUB_TOKEN não configurado. Usando dados locais/padrão.');
     isInitialized = true;
     memoryData = memoryData || defaultData;
     return memoryData;
@@ -61,14 +59,9 @@ async function readData() {
     });
 
     if (res.status === 404) {
-      console.log('[GitHub] Arquivo data.json não encontrado no repositório.');
       isInitialized = true;
       memoryData = memoryData || defaultData;
       return memoryData;
-    }
-
-    if (!res.ok) {
-      throw new Error(`Erro na API do GitHub: ${res.status} ${res.statusText}`);
     }
 
     const fileData = await res.json();
@@ -77,12 +70,10 @@ async function readData() {
     memoryData = parsedData;
     isInitialized = true;
     
-    // Sincroniza com o local
     await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(parsedData, null, 2)).catch(() => {});
     
     return parsedData;
   } catch (error) {
-    console.error('[GitHub] Erro ao ler dados:', error);
     isInitialized = true;
     memoryData = memoryData || defaultData;
     return memoryData;
@@ -92,36 +83,24 @@ async function readData() {
 async function writeData(data: any) {
   memoryData = data;
   
-  // Salva localmente imediatamente
   try {
     await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(data, null, 2));
-    console.log('[Storage] Dados salvos localmente com sucesso.');
   } catch (err) {
     console.error('[Storage] Erro ao salvar localmente:', err);
   }
 
   const { token, repo, branch, filePath } = getGitHubConfig();
-  
-  if (!token) {
-    console.warn('[GitHub] GITHUB_TOKEN não configurado. Alterações salvas apenas localmente.');
-    return;
+  if (token) {
+    performGitHubWrite(data, token, repo, branch, filePath).catch(err => {
+      console.error('[GitHub] Erro na sincronização:', err.message);
+    });
   }
-
-  // Tenta sincronizar com o GitHub em background
-  performGitHubWrite(data, token, repo, branch, filePath).catch(err => {
-    console.error('[GitHub] Falha na sincronização remota:', err.message);
-  });
 }
 
 async function performGitHubWrite(data: any, token: string, repo: string, branch: string, filePath: string) {
   const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
-  
-  // 1. Obter o SHA atual
   const getRes = await fetch(`${url}?ref=${branch}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/vnd.github.v3+json'
-    }
+    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' }
   });
 
   let sha = '';
@@ -130,9 +109,8 @@ async function performGitHubWrite(data: any, token: string, repo: string, branch
     sha = fileData.sha;
   }
 
-  // 2. Fazer o upload
   const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
-  const putRes = await fetch(url, {
+  await fetch(url, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -146,13 +124,6 @@ async function performGitHubWrite(data: any, token: string, repo: string, branch
       branch: branch
     })
   });
-
-  if (!putRes.ok) {
-    const errorData = await putRes.json();
-    throw new Error(errorData.message || 'Erro desconhecido ao salvar no GitHub');
-  }
-  
-  console.log('[GitHub] Sincronização remota concluída com sucesso.');
 }
 
 // --- Rotas da API ---
@@ -177,9 +148,19 @@ app.post('/api/players', async (req, res) => {
   try {
     const data = await readData();
     const newPlayer = req.body;
+    
+    if (!newPlayer.id) {
+      return res.status(400).json({ error: 'ID do jogador é obrigatório' });
+    }
+
     const existingIndex = data.players.findIndex((p: any) => p.id === newPlayer.id);
-    if (existingIndex >= 0) data.players[existingIndex] = newPlayer;
-    else data.players.push(newPlayer);
+    
+    if (existingIndex >= 0) {
+      data.players[existingIndex] = newPlayer;
+    } else {
+      data.players.push(newPlayer);
+    }
+    
     await writeData(data);
     res.json({ success: true, player: newPlayer });
   } catch (error) {

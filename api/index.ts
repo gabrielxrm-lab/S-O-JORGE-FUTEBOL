@@ -1,8 +1,11 @@
 import app from '../server.js';
+import express from 'express';
 
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: {
+      sizeLimit: '50mb',
+    },
   },
 };
 
