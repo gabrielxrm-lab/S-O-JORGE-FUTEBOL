@@ -7,9 +7,9 @@ import fs from 'fs/promises';
 const app = express();
 const PORT = 3000;
 
-// Aumentando o limite para suportar fotos em Base64 (50mb é seguro para este uso)
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+// Aumentando o limite para 100mb para garantir suporte total a grandes volumes de fotos
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 const getGitHubConfig = () => ({
   token: process.env.GITHUB_TOKEN || '', 
@@ -81,7 +81,8 @@ async function readData() {
 }
 
 async function writeData(data: any) {
-  memoryData = data;
+  // Atualiza a memória imediatamente para evitar race conditions
+  memoryData = JSON.parse(JSON.stringify(data));
   
   try {
     await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(data, null, 2));
@@ -153,6 +154,9 @@ app.post('/api/players', async (req, res) => {
       return res.status(400).json({ error: 'ID do jogador é obrigatório' });
     }
 
+    // Garantir que players seja um array
+    if (!Array.isArray(data.players)) data.players = [];
+
     const existingIndex = data.players.findIndex((p: any) => p.id === newPlayer.id);
     
     if (existingIndex >= 0) {
@@ -164,6 +168,7 @@ app.post('/api/players', async (req, res) => {
     await writeData(data);
     res.json({ success: true, player: newPlayer });
   } catch (error) {
+    console.error('Erro ao salvar jogador:', error);
     res.status(500).json({ error: 'Erro ao salvar jogador' });
   }
 });
