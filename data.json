@@ -287,12 +287,6 @@
   "transactions": [],
   "users": [
     {
-      "id": "2ec95f4a-ea90-4dd8-92c9-248c00f573f8",
-      "name": "Gabriel",
-      "password": "$2b$10$uD78vOKQLMhnRDEWNQjPneGYsojmdVFWLGsgTti9to13xqlShJ8Xy",
-      "role": "Diretoria"
-    },
-    {
       "id": "4fd1f15f-7b5b-4890-8447-f2bb106b9f01",
       "name": "Renato",
       "role": "Diretoria",
