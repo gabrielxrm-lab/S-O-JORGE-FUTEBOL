@@ -218,16 +218,7 @@
     }
   },
   "game_stats": [],
-  "transactions": [
-    {
-      "id": "b72214a3-502e-44d4-89c2-702d3ce09fb7",
-      "date": "2026-03-18",
-      "description": "RENATO - MENSALIDADE ABRIL",
-      "type": "income",
-      "category": "Mensalidade",
-      "amount": 35
-    }
-  ],
+  "transactions": [],
   "users": [
     {
       "id": "2f3d9ba9-3918-4cf0-9167-66574125b945",
