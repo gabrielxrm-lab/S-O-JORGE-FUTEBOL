@@ -219,10 +219,9 @@
   },
   "game_stats": [
     {
-      "date": "17/03/2026",
       "game_date": "2026-03-18",
       "player_name": "JOGADOR TESTE",
-      "goals": 6,
+      "goals": 0,
       "yellow_cards": 0,
       "red_cards": 0,
       "craque_do_jogo": 0,
@@ -230,10 +229,9 @@
       "gol_do_jogo": 0
     },
     {
-      "date": "17/03/2026",
       "game_date": "2026-03-18",
       "player_name": "TESTE JOGADOR",
-      "goals": 5,
+      "goals": 0,
       "yellow_cards": 0,
       "red_cards": 0,
       "craque_do_jogo": 0,
