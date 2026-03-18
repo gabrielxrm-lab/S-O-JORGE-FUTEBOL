@@ -217,28 +217,7 @@
       }
     }
   },
-  "game_stats": [
-    {
-      "game_date": "2026-03-18",
-      "player_name": "JOGADOR TESTE",
-      "goals": 0,
-      "yellow_cards": 0,
-      "red_cards": 0,
-      "craque_do_jogo": 0,
-      "goleiro_do_jogo": 0,
-      "gol_do_jogo": 0
-    },
-    {
-      "game_date": "2026-03-18",
-      "player_name": "TESTE JOGADOR",
-      "goals": 0,
-      "yellow_cards": 0,
-      "red_cards": 0,
-      "craque_do_jogo": 0,
-      "goleiro_do_jogo": 0,
-      "gol_do_jogo": 0
-    }
-  ],
+  "game_stats": [],
   "transactions": [],
   "users": [
     {
@@ -262,14 +241,5 @@
       "password": "$2b$10$9K7znicnC6Gl/qUSFolh6O6f816mkd5o.7HFm0r/cjtASfrON0UQ2"
     }
   ],
-  "matches": [
-    {
-      "id": "96bfae25-3924-4548-9840-ff76be5920e8",
-      "date": "17/03/2026",
-      "homeTeam": "MILAN",
-      "awayTeam": "INTER",
-      "homeScore": 6,
-      "awayScore": 5
-    }
-  ]
+  "matches": []
 }
