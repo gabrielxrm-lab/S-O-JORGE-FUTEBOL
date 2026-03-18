@@ -34,9 +34,36 @@
       "level": 2
     }
   ],
-  "monthly_payments": {},
+  "monthly_payments": {
+    "2026": {
+      "17f340fe-a2a2-47a0-9efd-87c71ed355a5": {
+        "2": "Paga",
+        "3": "Paga"
+      },
+      "370cfd2f-2cef-4c72-b89b-861d72015497": {
+        "2": "Paga"
+      }
+    }
+  },
   "game_stats": [],
-  "transactions": [],
+  "transactions": [
+    {
+      "id": "28138d0f-fccb-42e2-862d-0f7b843c9c78",
+      "date": "2026-03-18",
+      "description": "RENATO - MENSALIDADE FEVEREIRO",
+      "type": "income",
+      "category": "Mensalidade",
+      "amount": 35
+    },
+    {
+      "id": "546122a6-3e9e-4f7b-8d95-aae1833f0bc4",
+      "date": "2026-03-18",
+      "description": "ALEX - MENSALIDADE FEVEREIRO",
+      "type": "income",
+      "category": "Mensalidade",
+      "amount": 35
+    }
+  ],
   "users": [
     {
       "id": "2f3d9ba9-3918-4cf0-9167-66574125b945",
