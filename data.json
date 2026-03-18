@@ -289,8 +289,12 @@
     {
       "id": "2ec95f4a-ea90-4dd8-92c9-248c00f573f8",
       "name": "Gabriel",
-      "password": "$2b$10$uD78vOKQLMhnRDEWNQjPneGYsojmdVFWLGsgTti9to13xqlShJ8Xy",
-      "role": "Diretoria"
+      "role": "Diretoria",
+      "permissions": [
+        "all"
+      ],
+      "photo_file": "",
+      "password": "$2b$10$9AGa1YZfYHn.SR2zZeL3D.nR51NbzqU9HDiWs.lpVxeATMAByhkQ6"
     }
   ]
 }
