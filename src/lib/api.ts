@@ -22,6 +22,15 @@ export interface GameStat {
   gol_do_jogo: boolean | number;
 }
 
+export interface Match {
+  id: string;
+  date: string;
+  homeTeam: string;
+  awayTeam: string;
+  homeScore: number;
+  awayScore: number;
+}
+
 export interface Transaction {
   id: string;
   date: string;
@@ -46,6 +55,7 @@ export interface AppData {
   game_stats: GameStat[];
   transactions?: Transaction[];
   users?: User[];
+  matches?: Match[];
 }
 
 export const api = {
@@ -119,6 +129,15 @@ export const api = {
       body: JSON.stringify(stats),
     });
     if (!res.ok) throw new Error('Failed to save stats');
+  },
+
+  async saveMatch(match: Match): Promise<void> {
+    const res = await fetch('/api/matches', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(match),
+    });
+    if (!res.ok) throw new Error('Failed to save match');
   },
 
   async clearStats(): Promise<void> {

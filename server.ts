@@ -18,7 +18,7 @@ const getGitHubConfig = () => ({
   filePath: 'data.json'
 });
 
-const defaultData = { players: [], monthly_payments: {}, game_stats: [], transactions: [], users: [] };
+const defaultData = { players: [], monthly_payments: {}, game_stats: [], transactions: [], users: [], matches: [] };
 let memoryData: any = null;
 let isInitialized = false;
 const LOCAL_DATA_FILE = path.join(process.cwd(), 'data.json');
@@ -241,10 +241,23 @@ app.post('/api/stats', async (req, res) => {
   }
 });
 
+app.post('/api/matches', async (req, res) => {
+  try {
+    const data = await readData();
+    if (!data.matches) data.matches = [];
+    data.matches.push(req.body);
+    await writeData(data);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao salvar partida' });
+  }
+});
+
 app.delete('/api/stats', async (req, res) => {
   try {
     const data = await readData();
     data.game_stats = [];
+    data.matches = [];
     await writeData(data);
     res.json({ success: true });
   } catch (error) {

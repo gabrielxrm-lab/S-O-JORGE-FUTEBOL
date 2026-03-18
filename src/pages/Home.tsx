@@ -117,16 +117,16 @@ export function Home() {
   const balance = totalIncome - totalExpense;
 
   // Last Match
-  const lastMatchDate = data?.game_stats && data.game_stats.length > 0 
-    ? [...new Set(data.game_stats.map(s => s.date))].sort((a, b) => {
-        const [da, ma, ya] = a!.split('/');
-        const [db, mb, yb] = b!.split('/');
+  const lastMatch = data?.matches && data.matches.length > 0 
+    ? [...data.matches].sort((a, b) => {
+        const [da, ma, ya] = a.date.split('/');
+        const [db, mb, yb] = b.date.split('/');
         return new Date(`${yb}-${mb}-${db}`).getTime() - new Date(`${ya}-${ma}-${da}`).getTime();
       }).pop()
     : null;
 
-  const lastMatchStats = lastMatchDate ? data?.game_stats.filter(s => s.date === lastMatchDate) : [];
-  const lastMatchGoals = lastMatchStats?.reduce((acc, s) => acc + (s.goals || 0), 0) || 0;
+  const lastMatchStats = lastMatch ? data?.game_stats.filter(s => s.date === lastMatch.date) : [];
+  const totalGoals = lastMatch ? (lastMatch.homeScore + lastMatch.awayScore) : 0;
 
   if (loading) {
     return <LoadingSpinner fullScreen />;
@@ -247,33 +247,33 @@ export function Home() {
               <h3 className="font-black uppercase tracking-widest text-xs text-zinc-500 flex items-center gap-2">
                 <Trophy size={16} className="text-amber-400" /> Última Partida
               </h3>
-              <span className="text-xs font-bold text-zinc-400">{lastMatchDate || 'Nenhuma partida'}</span>
+              <span className="text-xs font-bold text-zinc-400">{lastMatch?.date || 'Nenhuma partida'}</span>
             </div>
             <div className="p-8 flex flex-col items-center justify-center text-center space-y-6">
-              {lastMatchDate ? (
+              {lastMatch ? (
                 <>
                   <div className="flex items-center gap-8 sm:gap-16">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center border border-red-500/20">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg" alt="Milan" className="w-10 h-10 object-contain" />
                       </div>
-                      <span className="font-black text-sm tracking-tighter">MILAN</span>
+                      <span className="font-black text-sm tracking-tighter">{lastMatch.homeTeam}</span>
                     </div>
                     <div className="text-5xl font-black text-white flex items-center gap-4">
-                      <span>?</span>
+                      <span>{lastMatch.homeScore}</span>
                       <span className="text-zinc-700 text-2xl">X</span>
-                      <span>?</span>
+                      <span>{lastMatch.awayScore}</span>
                     </div>
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg" alt="Inter" className="w-10 h-10 object-contain" />
                       </div>
-                      <span className="font-black text-sm tracking-tighter">INTER</span>
+                      <span className="font-black text-sm tracking-tighter">{lastMatch.awayTeam}</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap justify-center gap-3">
                     <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-xs font-bold text-emerald-400 flex items-center gap-2">
-                      <Goal size={14} /> {lastMatchGoals} Gols Marcados
+                      <Goal size={14} /> {totalGoals} Gols Marcados
                     </div>
                     <Link to="/history" className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-zinc-400 hover:text-white transition-colors">
                       Ver Súmula Completa

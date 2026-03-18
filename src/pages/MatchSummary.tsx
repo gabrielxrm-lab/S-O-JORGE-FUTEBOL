@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { api, GameStat } from '../lib/api';
+import { api, GameStat, Match } from '../lib/api';
 import { motion } from 'motion/react';
 import { Save, Trash2, Download } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { v4 as uuidv4 } from 'uuid';
 
 export function MatchSummary() {
   const { role, canAccess } = useAuth();
@@ -162,10 +163,23 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
     goleiros.forEach(n => (getStat(n).goleiro_do_jogo as number) += 1);
     golsJogo.forEach(n => (getStat(n).gol_do_jogo as number) += 1);
 
+    const homeScore = homeGoals.reduce((sum, g) => sum + g.qty, 0);
+    const awayScore = awayGoals.reduce((sum, g) => sum + g.qty, 0);
+
+    const match: Match = {
+      id: uuidv4(),
+      date: new Date(date).toLocaleDateString('pt-BR'),
+      homeTeam: homeName,
+      awayTeam: awayName,
+      homeScore,
+      awayScore
+    };
+
     setSaving(true);
     try {
       await api.saveStats(Array.from(statsMap.values()));
-      alert('Estatísticas salvas no Ranking com sucesso!');
+      await api.saveMatch(match);
+      alert('Estatísticas e placar salvos com sucesso!');
       clearAll();
     } catch (error) {
       console.error(error);
