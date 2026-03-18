@@ -100,6 +100,16 @@
       ],
       "photo_file": "",
       "password": "$2b$10$lvm9vAdHj0XyeIoIMU4jt.xKdBEJNw/VwXeslS8o9NpUpsg56tQ4C"
+    },
+    {
+      "id": "7f6163db-16e5-4c9f-930c-fdaa2459230d",
+      "name": "Gabriel",
+      "role": "Diretoria",
+      "permissions": [
+        "all"
+      ],
+      "photo_file": "",
+      "password": "$2b$10$9K7znicnC6Gl/qUSFolh6O6f816mkd5o.7HFm0r/cjtASfrON0UQ2"
     }
   ]
 }
