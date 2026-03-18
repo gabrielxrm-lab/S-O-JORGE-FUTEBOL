@@ -138,20 +138,20 @@ export function Home() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-10 pb-10"
     >
-      <header className="flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-6">
+      <header className="flex flex-col items-center justify-center text-center gap-6">
+        <div className="flex flex-col items-center gap-4">
           <img 
             src="https://raw.githubusercontent.com/gabrielxrm-lab/S-O-JORGE-FUTEBOL/main/logo_sao_jorge.png" 
             alt="Logo SJFC" 
-            className="w-24 h-24 object-contain drop-shadow-2xl"
+            className="w-32 h-32 object-contain drop-shadow-2xl"
           />
           <div>
-            <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white">São Jorge FC</h1>
+            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white">São Jorge FC</h1>
             <p className="text-zinc-400 font-bold tracking-widest uppercase text-sm">Painel de Controle</p>
           </div>
         </div>
         
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-col items-center gap-2">
           <div className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-black tracking-widest uppercase text-zinc-400">
             {role}
           </div>
