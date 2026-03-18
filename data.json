@@ -17,10 +17,14 @@
   "transactions": [],
   "users": [
     {
-      "id": "renato-id-123",
-      "name": "renato",
-      "password": "123",
-      "role": "Diretoria"
+      "id": "2f3d9ba9-3918-4cf0-9167-66574125b945",
+      "name": "Renato",
+      "role": "Diretoria",
+      "permissions": [
+        "all"
+      ],
+      "photo_file": "",
+      "password": "$2b$10$lvm9vAdHj0XyeIoIMU4jt.xKdBEJNw/VwXeslS8o9NpUpsg56tQ4C"
     }
   ]
 }
