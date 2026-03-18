@@ -207,9 +207,9 @@
   "monthly_payments": {
     "2026": {
       "17f340fe-a2a2-47a0-9efd-87c71ed355a5": {
-        "2": "Paga",
+        "2": "Atrasada",
         "3": "Paga",
-        "4": "Atrasada"
+        "4": "Paga"
       },
       "370cfd2f-2cef-4c72-b89b-861d72015497": {
         "2": "Paga",
