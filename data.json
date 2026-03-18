@@ -286,20 +286,14 @@
     "2026": {
       "94d6d5ac-d98a-47f1-b51f-ec07df1ca339": {
         "3": "Paga"
+      },
+      "9866efbf-29ab-456d-97a6-cc0d2aa711f1": {
+        "3": "Paga"
       }
     }
   },
   "game_stats": [],
-  "transactions": [
-    {
-      "id": "2c489b5d-3e7e-4aef-9367-bbf2ec81fc0d",
-      "date": "2026-03-18",
-      "description": "ALEX - MENSALIDADE MARÇO",
-      "type": "income",
-      "category": "Mensalidade",
-      "amount": 35
-    }
-  ],
+  "transactions": [],
   "users": [
     {
       "id": "4fd1f15f-7b5b-4890-8447-f2bb106b9f01",
@@ -309,7 +303,7 @@
         "all"
       ],
       "photo_file": "",
-      "password": "$2b$10$ZKHojRDh7hwYaU.hHa9kbu6SlDr3kh9ucbdeKCtJZZTGwBnEmA3TS"
+      "password": "$2b$10$uVEs7OCufewRfihOGJGTtOyAVrAcrBdS406bDxFk5KilF/9gOvrmC"
     }
   ]
 }
