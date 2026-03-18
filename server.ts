@@ -145,6 +145,19 @@ app.get('/api/data', async (req, res) => {
   }
 });
 
+app.post('/api/data/restore', async (req, res) => {
+  try {
+    const newData = req.body;
+    if (!newData.players || !Array.isArray(newData.players)) {
+      return res.status(400).json({ error: 'Formato de dados inválido' });
+    }
+    await writeData(newData);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao restaurar dados' });
+  }
+});
+
 app.post('/api/players', async (req, res) => {
   try {
     const data = await readData();

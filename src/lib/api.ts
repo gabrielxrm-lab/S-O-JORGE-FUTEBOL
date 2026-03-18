@@ -55,6 +55,15 @@ export const api = {
     return res.json();
   },
 
+  async restoreData(data: AppData): Promise<void> {
+    const res = await fetch('/api/data/restore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to restore data');
+  },
+
   async savePlayer(player: Player): Promise<void> {
     try {
       const res = await fetch('/api/players', {

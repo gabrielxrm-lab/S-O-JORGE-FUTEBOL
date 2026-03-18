@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Home, Users, DollarSign, FileText, Dices, Trophy, LogOut, Key, X, User, Download } from 'lucide-react';
+import { Home, Users, DollarSign, FileText, Dices, Trophy, LogOut, Key, X, User, Download, Upload } from 'lucide-react';
 import clsx from 'clsx';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
@@ -15,6 +15,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { role, userName, userPhoto, logout, canAccess } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isDiretoria = role === 'Diretoria';
   const isMembro = role === 'Membro';
@@ -34,6 +35,40 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     } catch (error) {
       toast.error('Erro ao realizar backup');
     }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const content = e.target?.result as string;
+        const jsonData = JSON.parse(content);
+        
+        if (!jsonData.players) {
+          throw new Error('Arquivo JSON inválido. Certifique-se de que é um backup do São Jorge FC.');
+        }
+
+        if (window.confirm('ATENÇÃO: Isso irá substituir TODOS os dados atuais pelos dados do arquivo. Deseja continuar?')) {
+          const loadingToast = toast.loading('Restaurando dados...');
+          await api.restoreData(jsonData);
+          toast.dismiss(loadingToast);
+          toast.success('Dados restaurados com sucesso!');
+          window.location.reload();
+        }
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Erro ao processar arquivo');
+      }
+    };
+    reader.readAsText(file);
+    // Reset input
+    event.target.value = '';
   };
 
   const navItems = [
@@ -154,7 +189,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         {isDiretoria && (
-          <div className="px-4 pb-4">
+          <div className="px-4 pb-4 space-y-2">
             <button
               onClick={handleBackup}
               className="w-full flex items-center justify-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 py-2 rounded-xl transition-colors text-sm font-bold"
@@ -162,6 +197,21 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <Download size={16} />
               Fazer Backup dos Dados
             </button>
+            
+            <button
+              onClick={handleUploadClick}
+              className="w-full flex items-center justify-center gap-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 py-2 rounded-xl transition-colors text-sm font-bold"
+            >
+              <Upload size={16} />
+              Fazer Upload dos Dados
+            </button>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileUpload} 
+              accept=".json" 
+              className="hidden" 
+            />
           </div>
         )}
 
