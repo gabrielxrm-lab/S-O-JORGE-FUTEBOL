@@ -6,8 +6,8 @@ import { Save, Trash2, Download } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function MatchSummary() {
-  const { role } = useAuth();
-  const hasAccess = role === 'Diretoria' || role === 'Membro';
+  const { role, canAccess } = useAuth();
+  const hasAccess = canAccess('matches');
 
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [round, setRound] = useState('');

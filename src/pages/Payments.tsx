@@ -8,12 +8,11 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export function Payments() {
-  const { role } = useAuth();
+  const { role, canAccess } = useAuth();
   const [data, setData] = useState<AppData | null>(null);
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [payments, setPayments] = useState<Record<string, Record<string, string>>>({});
-  const [saving, setSaving] = useState(false);
   
   const [activeTab, setActiveTab] = useState<'mensalidades' | 'fluxo'>('mensalidades');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -24,12 +23,12 @@ export function Payments() {
   const [newTx, setNewTx] = useState<Partial<Transaction>>({ type: 'income', date: new Date().toISOString().split('T')[0] });
 
   useEffect(() => {
-    if (role !== 'Diretoria') {
+    if (!canAccess('payments')) {
       window.location.href = '/';
       return;
     }
     loadData();
-  }, [role]);
+  }, [role, canAccess]);
 
   const loadData = async () => {
     try {
@@ -50,38 +49,75 @@ export function Payments() {
     }
   }, [year, data]);
 
-  const handleToggle = (playerId: string, month: string) => {
-    setPayments(prev => {
-      const playerPayments = prev[playerId] || {};
-      const currentStatus = playerPayments[month] || 'Atrasada';
-      const newStatus = currentStatus === 'Paga' ? 'Atrasada' : 'Paga';
+  const handleToggle = async (player: Player, monthKey: string, monthName: string) => {
+    const currentStatus = payments[player.id]?.[monthKey] || 'Atrasada';
+    const isPaid = currentStatus === 'Paga';
+    const newStatus = isPaid ? 'Atrasada' : 'Paga';
+    
+    if (newStatus === 'Paga') {
+      const fullMonthNames: Record<string, string> = {
+        "Jan": "Janeiro", "Fev": "Fevereiro", "Mar": "Março", "Abr": "Abril",
+        "Mai": "Maio", "Jun": "Junho", "Jul": "Julho", "Ago": "Agosto",
+        "Set": "Setembro", "Out": "Outubro", "Nov": "Novembro", "Dez": "Dezembro"
+      };
+      const fullMonth = fullMonthNames[monthName] || monthName;
       
-      return {
-        ...prev,
-        [playerId]: {
-          ...playerPayments,
-          [month]: newStatus
+      const amountStr = window.prompt(`Qual o valor da mensalidade de ${player.name} para ${fullMonth}?`, "50");
+      if (amountStr === null) return; // Cancelled
+      
+      const amount = parseFloat(amountStr.replace(',', '.')) || 50;
+      
+      const newPayments = {
+        ...payments,
+        [player.id]: {
+          ...(payments[player.id] || {}),
+          [monthKey]: newStatus
         }
       };
-    });
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await api.savePayments(year, payments);
-      alert('Mensalidades salvas com sucesso!');
-      loadData();
-    } catch (error) {
-      console.error(error);
-      alert('Erro ao salvar mensalidades');
-    } finally {
-      setSaving(false);
+      setPayments(newPayments);
+      
+      const tx: Transaction = {
+        id: crypto.randomUUID(),
+        date: new Date().toISOString().split('T')[0],
+        description: `${player.name} - MENSALIDADE ${fullMonth.toUpperCase()}`,
+        type: 'income',
+        category: 'Mensalidade',
+        amount: amount
+      };
+      
+      try {
+        await api.savePayments(year, newPayments);
+        await api.saveTransaction(tx);
+        loadData();
+      } catch (error) {
+        console.error(error);
+        alert('Erro ao salvar mensalidade e transação');
+      }
+    } else {
+      const newPayments = {
+        ...payments,
+        [player.id]: {
+          ...(payments[player.id] || {}),
+          [monthKey]: newStatus
+        }
+      };
+      setPayments(newPayments);
+      try {
+        await api.savePayments(year, newPayments);
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 
   const handleCobrar = (player: Player, monthName: string) => {
-    const message = `Fala ${player.name}, a mensalidade de ${monthName} está pendente! Fortalece o São Jorge aí! 👊`;
+    const fullMonthNames: Record<string, string> = {
+      "Jan": "Janeiro", "Fev": "Fevereiro", "Mar": "Março", "Abr": "Abril",
+      "Mai": "Maio", "Jun": "Junho", "Jul": "Julho", "Ago": "Agosto",
+      "Set": "Setembro", "Out": "Outubro", "Nov": "Novembro", "Dez": "Dezembro"
+    };
+    const fullMonth = fullMonthNames[monthName] || monthName;
+    const message = `Fala ${player.name}, a mensalidade de ${fullMonth} está pendente! Fortalece o São Jorge aí! 👊`;
     const phone = player.phone ? player.phone.replace(/\D/g, '') : '';
     if (phone) {
       window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(message)}`, '_blank');
@@ -227,6 +263,8 @@ export function Payments() {
 
   if (!data) return null;
 
+  const playersForPayments = data.players.filter(p => p.position !== 'GOLEIRO');
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -250,23 +288,47 @@ export function Payments() {
 
       {activeTab === 'mensalidades' && (
         <div className="space-y-4">
-          <div className="flex justify-end items-center gap-4">
-            <select 
-              value={year}
-              onChange={e => setYear(e.target.value)}
-              className="bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
-            >
-              {years.map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-
+          <div className="flex justify-between items-center gap-4">
             <button 
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-6 py-2 rounded-lg transition-colors"
+              onClick={() => {
+                const pendingPlayers = playersForPayments.filter(p => {
+                  const currentMonth = new Date().getMonth() + 1;
+                  return payments[p.id]?.[currentMonth.toString()] !== 'Paga';
+                });
+                
+                if (pendingPlayers.length === 0) {
+                  alert('Todos os jogadores estão em dia com a mensalidade do mês atual!');
+                  return;
+                }
+
+                const currentMonthName = months[new Date().getMonth()];
+                const fullMonthNames: Record<string, string> = {
+                  "Jan": "Janeiro", "Fev": "Fevereiro", "Mar": "Março", "Abr": "Abril",
+                  "Mai": "Maio", "Jun": "Junho", "Jul": "Julho", "Ago": "Agosto",
+                  "Set": "Setembro", "Out": "Outubro", "Nov": "Novembro", "Dez": "Dezembro"
+                };
+                const fullMonth = fullMonthNames[currentMonthName] || currentMonthName;
+
+                const message = `Fala galera! A mensalidade de ${fullMonth} está pendente para alguns jogadores. Fortalece o São Jorge aí! 👊`;
+                
+                // For mass messaging, we usually open WhatsApp Web with just the text to paste in a group
+                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+              }}
+              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors"
             >
-              <Save size={20} />
-              {saving ? 'Salvando...' : 'Salvar Alterações'}
+              <MessageCircle size={20} />
+              <span className="hidden sm:inline">Cobrar Todos (Mês Atual)</span>
             </button>
+
+            <div className="flex items-center gap-4">
+              <select 
+                value={year}
+                onChange={e => setYear(e.target.value)}
+                className="bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 focus:outline-none focus:border-indigo-500"
+              >
+                {years.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
           </div>
 
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
@@ -281,14 +343,14 @@ export function Payments() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800">
-                  {data.players.length === 0 ? (
+                  {playersForPayments.length === 0 ? (
                     <tr>
                       <td colSpan={13} className="px-6 py-8 text-center text-zinc-500">
                         Nenhum jogador cadastrado.
                       </td>
                     </tr>
                   ) : (
-                    data.players.map(player => (
+                    playersForPayments.map(player => (
                       <tr key={player.id} className="hover:bg-zinc-800/50 transition-colors">
                         <td className="px-6 py-4 font-medium text-white sticky left-0 bg-zinc-900 z-10 border-r border-zinc-800">
                           {player.name}
@@ -302,7 +364,7 @@ export function Payments() {
                             <td key={m} className="px-2 py-4 text-center">
                               <div className="flex items-center justify-center gap-1">
                                 <button
-                                  onClick={() => handleToggle(player.id, monthKey)}
+                                  onClick={() => handleToggle(player, monthKey, m)}
                                   className={`p-1.5 rounded-full transition-colors ${
                                     isPaid ? 'text-emerald-400 hover:bg-emerald-400/10' : 'text-zinc-600 hover:bg-zinc-800'
                                   }`}

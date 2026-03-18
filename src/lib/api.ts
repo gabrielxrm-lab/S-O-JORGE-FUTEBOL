@@ -37,6 +37,7 @@ export interface User {
   password?: string;
   role: 'Diretoria' | 'Membro';
   permissions?: string[];
+  photo_file?: string;
 }
 
 export interface AppData {

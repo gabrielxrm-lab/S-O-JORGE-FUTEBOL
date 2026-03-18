@@ -6,8 +6,8 @@ import { Dices, Users, MessageCircle } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function TeamDraw() {
-  const { role } = useAuth();
-  const hasAccess = role === 'Diretoria' || role === 'Membro';
+  const { role, canAccess } = useAuth();
+  const hasAccess = canAccess('draw');
 
   const [data, setData] = useState<AppData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -16,11 +16,15 @@ export function TeamDraw() {
   const [teams, setTeams] = useState<Player[][]>([]);
 
   useEffect(() => {
+    if (!hasAccess) {
+      window.location.href = '/';
+      return;
+    }
     api.getData()
       .then(setData)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [hasAccess]);
 
   const togglePlayer = (id: string) => {
     setSelectedPlayers(prev => 

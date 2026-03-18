@@ -6,13 +6,13 @@ import { Trophy, AlertTriangle, Edit2, X, Save } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function Ranking() {
-  const { role } = useAuth();
+  const { role, canAccess } = useAuth();
   const [data, setData] = useState<AppData | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingPlayer, setEditingPlayer] = useState<any>(null);
 
   const isDiretoria = role === 'Diretoria';
-  const hasAccess = role === 'Diretoria' || role === 'Membro';
+  const hasAccess = canAccess('ranking');
 
   const loadData = () => {
     api.getData()

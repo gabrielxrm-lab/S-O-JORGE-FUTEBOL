@@ -12,19 +12,13 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const { role, userName, permissions, logout } = useAuth();
+  const { role, userName, userPhoto, logout, canAccess } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   const isDiretoria = role === 'Diretoria';
   const isMembro = role === 'Membro';
   const hasAccess = isDiretoria || isMembro;
-
-  const canAccess = (module: string) => {
-    if (permissions.includes('all')) return true;
-    if (permissions.length > 0) return permissions.includes(module);
-    return isDiretoria; // Fallback for old users
-  };
 
   const handleBackup = async () => {
     try {
@@ -44,11 +38,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const navItems = [
     { path: '/', label: 'Página Principal', icon: Home, show: true },
-    { path: '/players', label: 'Gerenciar Jogadores', icon: Users, show: canAccess('players') },
+    { path: '/players', label: canAccess('players') ? 'Gerenciar Jogadores' : 'Jogadores', icon: Users, show: true },
     { path: '/payments', label: 'Financeiro', icon: DollarSign, show: canAccess('payments') },
     { path: '/summary', label: 'Nova Súmula', icon: FileText, show: canAccess('matches') },
     { path: '/draw', label: 'Sorteio de Times', icon: Dices, show: canAccess('draw') },
-    { path: '/ranking', label: 'Ranking', icon: Trophy, show: canAccess('ranking') },
+    { path: '/ranking', label: 'Ranking', icon: Trophy, show: true },
     { path: '/history', label: 'Histórico de Partidas', icon: FileText, show: canAccess('matches') },
     { path: '/users', label: 'Gerenciar Acessos', icon: User, show: canAccess('users') },
   ].filter(item => item.show);
@@ -92,8 +86,19 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {hasAccess ? (
             <div className={`bg-${isDiretoria ? 'emerald' : 'indigo'}-500/10 border border-${isDiretoria ? 'emerald' : 'indigo'}-500/20 rounded-xl p-4 relative overflow-hidden`}>
               <div className={`absolute top-0 left-0 w-1 h-full bg-${isDiretoria ? 'emerald' : 'indigo'}-500`}></div>
-              <p className={`text-${isDiretoria ? 'emerald' : 'indigo'}-400 text-sm font-bold mb-1`}>{userName}</p>
-              <p className="text-zinc-400 text-xs mb-3">Acesso: {role}</p>
+              <div className="flex items-center gap-3 mb-3">
+                {userPhoto && userPhoto !== 'Nenhuma' ? (
+                  <img src={userPhoto} alt={userName || 'User'} className="w-10 h-10 rounded-full object-cover border border-white/10" />
+                ) : (
+                  <div className={`w-10 h-10 rounded-full bg-${isDiretoria ? 'emerald' : 'indigo'}-500/20 flex items-center justify-center`}>
+                    <User size={20} className={`text-${isDiretoria ? 'emerald' : 'indigo'}-400`} />
+                  </div>
+                )}
+                <div>
+                  <p className={`text-${isDiretoria ? 'emerald' : 'indigo'}-400 text-sm font-bold`}>{userName}</p>
+                  <p className="text-zinc-400 text-xs">Acesso: {role}</p>
+                </div>
+              </div>
               <button 
                 onClick={logout}
                 className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-zinc-200 py-2 rounded-lg transition-colors text-sm font-medium border border-white/5"

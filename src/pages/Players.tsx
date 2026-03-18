@@ -7,7 +7,7 @@ import { Search, Plus, Edit2, Trash2, Save, X, Trophy, Star, Shield, Goal, Activ
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export function Players() {
-  const { role } = useAuth();
+  const { role, canAccess } = useAuth();
   const [data, setData] = useState<AppData | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -17,7 +17,7 @@ export function Players() {
   const [isAdding, setIsAdding] = useState(false);
 
   const isDiretoria = role === 'Diretoria';
-  const hasAccess = role === 'Diretoria' || role === 'Membro';
+  const hasAccess = canAccess('players');
 
   const loadData = () => {
     api.getData()

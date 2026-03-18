@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api, User } from '../lib/api';
 import { motion } from 'motion/react';
-import { Users as UsersIcon, Plus, Trash2, Shield, User as UserIcon, Lock, Edit2, CheckSquare, Square } from 'lucide-react';
+import { Users as UsersIcon, Plus, Trash2, Shield, User as UserIcon, Lock, Edit2, CheckSquare, Square, Camera } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 const AVAILABLE_PERMISSIONS = [
@@ -15,7 +15,7 @@ const AVAILABLE_PERMISSIONS = [
 ];
 
 export function Users() {
-  const { role } = useAuth();
+  const { role, userName, updateUserPhoto, canAccess } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -24,7 +24,8 @@ export function Users() {
     name: '',
     password: '',
     role: 'Membro',
-    permissions: []
+    permissions: [],
+    photo_file: ''
   });
 
   useEffect(() => {
@@ -49,11 +50,12 @@ export function Users() {
         name: user.name,
         password: '', // Don't show existing password
         role: user.role,
-        permissions: user.permissions || []
+        permissions: user.permissions || [],
+        photo_file: user.photo_file || ''
       });
     } else {
       setEditingUserId(null);
-      setFormData({ name: '', password: '', role: 'Membro', permissions: [] });
+      setFormData({ name: '', password: '', role: 'Membro', permissions: [], photo_file: '' });
     }
     setShowModal(true);
   };
@@ -68,7 +70,8 @@ export function Users() {
         id: editingUserId || uuidv4(),
         name: formData.name,
         role: formData.role as 'Diretoria' | 'Membro',
-        permissions: formData.permissions
+        permissions: formData.role === 'Diretoria' ? ['all'] : formData.permissions,
+        photo_file: formData.photo_file
       };
 
       if (formData.password) {
@@ -76,6 +79,12 @@ export function Users() {
       }
 
       await api.saveUser(userToSave);
+      
+      // Update the current user's photo in the sidebar if they edited their own profile
+      if (userToSave.name === userName) {
+        updateUserPhoto(userToSave.photo_file || null);
+      }
+      
       await loadUsers();
       setShowModal(false);
     } catch (error) {
@@ -96,20 +105,47 @@ export function Users() {
     }
   };
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, photo_file: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const togglePermission = (permId: string) => {
     setFormData(prev => {
-      const current = prev.permissions || [];
-      if (current.includes('all')) return prev; // If they have 'all', don't toggle
+      let current = prev.permissions || [];
       
+      if (permId === 'all') {
+        if (current.includes('all')) {
+          return { ...prev, permissions: [] };
+        } else {
+          return { ...prev, permissions: ['all'] };
+        }
+      }
+
+      if (current.includes('all')) {
+        // If it was 'all' and we toggle a specific one off, we expand 'all' to all available except the toggled one
+        current = AVAILABLE_PERMISSIONS.map(p => p.id);
+      }
+
       const updated = current.includes(permId)
         ? current.filter(p => p !== permId)
         : [...current, permId];
+        
+      if (updated.length === AVAILABLE_PERMISSIONS.length && !updated.includes('all')) {
+        return { ...prev, permissions: ['all'] };
+      }
         
       return { ...prev, permissions: updated };
     });
   };
 
-  if (role !== 'Diretoria') {
+  if (!canAccess('users')) {
     return (
       <div className="flex items-center justify-center h-full">
         <p className="text-zinc-400">Acesso restrito à Diretoria.</p>
@@ -161,9 +197,13 @@ export function Users() {
                   <tr key={user.id} className="hover:bg-white/5 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center">
-                          <UserIcon size={20} className="text-indigo-400" />
-                        </div>
+                        {user.photo_file && user.photo_file !== 'Nenhuma' ? (
+                          <img src={user.photo_file} alt={user.name} className="w-10 h-10 rounded-full object-cover border border-white/10" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center">
+                            <UserIcon size={20} className="text-indigo-400" />
+                          </div>
+                        )}
                         <span className="font-bold text-zinc-100">{user.name}</span>
                       </div>
                     </td>
@@ -213,6 +253,22 @@ export function Users() {
             </div>
             
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div className="flex justify-center mb-6">
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full bg-black/50 border-2 border-dashed border-white/20 flex items-center justify-center overflow-hidden group">
+                    {formData.photo_file && formData.photo_file !== 'Nenhuma' ? (
+                      <img src={formData.photo_file} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <UserIcon size={32} className="text-zinc-500 group-hover:text-indigo-400 transition-colors" />
+                    )}
+                    <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                      <Camera size={24} className="text-white" />
+                      <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Nome de Usuário</label>
                 <div className="relative">
@@ -261,31 +317,48 @@ export function Users() {
                 </select>
               </div>
 
-              <div className="space-y-3 pt-2">
-                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Permissões de Edição</label>
-                <div className="grid grid-cols-1 gap-2 bg-black/30 p-4 rounded-xl border border-white/5">
-                  {AVAILABLE_PERMISSIONS.map(perm => {
-                    const hasPerm = formData.permissions?.includes('all') || formData.permissions?.includes(perm.id);
-                    return (
-                      <button
-                        key={perm.id}
-                        type="button"
-                        onClick={() => togglePermission(perm.id)}
-                        className="flex items-center gap-3 text-left hover:bg-white/5 p-2 rounded-lg transition-colors"
-                      >
-                        {hasPerm ? (
-                          <CheckSquare size={20} className="text-indigo-500 flex-shrink-0" />
-                        ) : (
-                          <Square size={20} className="text-zinc-500 flex-shrink-0" />
-                        )}
-                        <span className={`text-sm font-medium ${hasPerm ? 'text-zinc-200' : 'text-zinc-500'}`}>
-                          {perm.label}
-                        </span>
-                      </button>
-                    );
-                  })}
+              {formData.role === 'Membro' && (
+                <div className="space-y-3 pt-2">
+                  <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Permissões de Edição</label>
+                  <div className="grid grid-cols-1 gap-2 bg-black/30 p-4 rounded-xl border border-white/5">
+                    <button
+                      type="button"
+                      onClick={() => togglePermission('all')}
+                      className="flex items-center gap-3 text-left hover:bg-white/5 p-2 rounded-lg transition-colors"
+                    >
+                      {formData.permissions?.includes('all') ? (
+                        <CheckSquare size={20} className="text-indigo-500 flex-shrink-0" />
+                      ) : (
+                        <Square size={20} className="text-zinc-500 flex-shrink-0" />
+                      )}
+                      <span className={`text-sm font-bold ${formData.permissions?.includes('all') ? 'text-zinc-200' : 'text-zinc-500'}`}>
+                        Acesso Total (Todas as Permissões)
+                      </span>
+                    </button>
+                    <div className="h-px bg-white/5 my-1"></div>
+                    {AVAILABLE_PERMISSIONS.map(perm => {
+                      const hasPerm = formData.permissions?.includes('all') || formData.permissions?.includes(perm.id);
+                      return (
+                        <button
+                          key={perm.id}
+                          type="button"
+                          onClick={() => togglePermission(perm.id)}
+                          className="flex items-center gap-3 text-left hover:bg-white/5 p-2 rounded-lg transition-colors"
+                        >
+                          {hasPerm ? (
+                            <CheckSquare size={20} className="text-indigo-500 flex-shrink-0" />
+                          ) : (
+                            <Square size={20} className="text-zinc-500 flex-shrink-0" />
+                          )}
+                          <span className={`text-sm font-medium ${hasPerm ? 'text-zinc-200' : 'text-zinc-500'}`}>
+                            {perm.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex gap-3 pt-4">
                 <button
