@@ -68,14 +68,13 @@ export function Payments() {
       
       const amount = parseFloat(amountStr.replace(',', '.')) || 35;
       
-      const newPayments = {
-        ...payments,
+      setPayments(prev => ({
+        ...prev,
         [player.id]: {
-          ...(payments[player.id] || {}),
+          ...(prev[player.id] || {}),
           [monthKey]: newStatus
         }
-      };
-      setPayments(newPayments);
+      }));
       
       const tx: Transaction = {
         id: uuidv4(),
@@ -87,7 +86,7 @@ export function Payments() {
       };
       
       try {
-        await api.savePayments(year, newPayments);
+        await api.saveSinglePayment(year, player.id, monthKey, newStatus);
         await api.saveTransaction(tx);
         loadData();
       } catch (error) {
@@ -95,16 +94,15 @@ export function Payments() {
         alert('Erro ao salvar mensalidade e transação');
       }
     } else {
-      const newPayments = {
-        ...payments,
+      setPayments(prev => ({
+        ...prev,
         [player.id]: {
-          ...(payments[player.id] || {}),
+          ...(prev[player.id] || {}),
           [monthKey]: newStatus
         }
-      };
-      setPayments(newPayments);
+      }));
       try {
-        await api.savePayments(year, newPayments);
+        await api.saveSinglePayment(year, player.id, monthKey, newStatus);
       } catch (error) {
         console.error(error);
       }

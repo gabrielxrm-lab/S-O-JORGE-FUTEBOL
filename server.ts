@@ -79,8 +79,9 @@ async function readData() {
   }
 }
 
+let writeTimeout: NodeJS.Timeout | null = null;
 let isWriting = false;
-let writeQueue: (() => void)[] = [];
+let pendingWrite = false;
 
 async function writeData(data: any) {
   const { token, repo, branch, filePath } = getGitHubConfig();
@@ -100,28 +101,40 @@ async function writeData(data: any) {
     return;
   }
 
-  // Mutex to prevent concurrent writes to GitHub
-  if (isWriting) {
-    return new Promise<void>((resolve, reject) => {
-      writeQueue.push(async () => {
-        try {
-          await performGitHubWrite(data, token, repo, branch, filePath);
-          resolve();
-        } catch (e) {
-          reject(e);
-        }
-      });
-    });
-  }
+  // Schedule GitHub write
+  return new Promise<void>((resolve, reject) => {
+    if (writeTimeout) {
+      clearTimeout(writeTimeout);
+    }
+    
+    writeTimeout = setTimeout(async () => {
+      if (isWriting) {
+        pendingWrite = true;
+        resolve(); // Resolve early, it will be written in the next cycle
+        return;
+      }
+      
+      await executeWrite(token, repo, branch, filePath);
+      resolve();
+    }, 1000); // 1 second debounce
+    
+    // If we want to resolve immediately for the client:
+    resolve(); 
+  });
+}
 
+async function executeWrite(token: string, repo: string, branch: string, filePath: string) {
   isWriting = true;
   try {
-    await performGitHubWrite(data, token, repo, branch, filePath);
+    await performGitHubWrite(memoryData, token, repo, branch, filePath);
+  } catch (error) {
+    console.error('[GitHub Sync] Delayed write failed:', error);
   } finally {
     isWriting = false;
-    if (writeQueue.length > 0) {
-      const next = writeQueue.shift();
-      if (next) next();
+    if (pendingWrite) {
+      pendingWrite = false;
+      // Trigger another write if there were pending changes
+      setTimeout(() => executeWrite(token, repo, branch, filePath), 1000);
     }
   }
 }
@@ -243,12 +256,33 @@ app.post('/api/payments', async (req, res) => {
     const data = await readData();
     const { year, payments } = req.body; // payments: { [playerId]: { [month]: status } }
     
+    if (!data.monthly_payments) data.monthly_payments = {};
     data.monthly_payments[year] = payments;
     
     await writeData(data);
     res.json({ success: true });
   } catch (error) {
+    console.error('Erro ao salvar pagamentos:', error);
     res.status(500).json({ error: 'Failed to save payments' });
+  }
+});
+
+app.put('/api/payments/single', async (req, res) => {
+  try {
+    const data = await readData();
+    const { year, playerId, month, status } = req.body;
+    
+    if (!data.monthly_payments) data.monthly_payments = {};
+    if (!data.monthly_payments[year]) data.monthly_payments[year] = {};
+    if (!data.monthly_payments[year][playerId]) data.monthly_payments[year][playerId] = {};
+    
+    data.monthly_payments[year][playerId][month] = status;
+    
+    await writeData(data);
+    res.json({ success: true, payments: data.monthly_payments[year] });
+  } catch (error) {
+    console.error('Erro ao salvar pagamento unico:', error);
+    res.status(500).json({ error: 'Failed to save payment' });
   }
 });
 
@@ -318,6 +352,7 @@ app.post('/api/transactions', async (req, res) => {
     await writeData(data);
     res.json({ success: true, transaction: newTx });
   } catch (error) {
+    console.error('Erro ao salvar transacao:', error);
     res.status(500).json({ error: 'Failed to save transaction' });
   }
 });

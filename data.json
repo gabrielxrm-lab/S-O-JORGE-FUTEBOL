@@ -1,315 +1,38 @@
 {
   "players": [
     {
-      "id": "94d6d5ac-d98a-47f1-b51f-ec07df1ca339",
-      "name": "RENATO",
-      "position": "MEIO-CAMPO",
-      "shirt_number": "8",
-      "date_of_birth": "24/10/1984",
-      "phone": "21 97140-0676",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026",
-      "level": 3
-    },
-    {
-      "id": "f4a1ae2e-9f7d-4139-bfe9-becab8e94d0f",
+      "id": "d994be93-53c0-4a52-96e0-c181e19cf845",
       "name": "GABRIEL",
       "position": "GOLEIRO",
       "shirt_number": "1",
       "date_of_birth": "20/06/1995",
-      "phone": "21 972757256",
+      "phone": "21 97275-7256",
       "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "9866efbf-29ab-456d-97a6-cc0d2aa711f1",
-      "name": "ALEX",
-      "position": "ATACANTE",
-      "shirt_number": "17",
-      "date_of_birth": "18/11/1985",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "a34e8a93-0666-4724-8334-394d43509058",
-      "name": "BAIANO",
-      "position": "ATACANTE",
-      "shirt_number": "",
-      "date_of_birth": "21/08/1988",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "b8cf6269-401c-4f1a-9a81-a74c5f5cd6a1",
-      "name": "BABY",
-      "position": "LATERAL",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "f7db2d98-0918-4b91-8b63-d9991966b5e1",
-      "name": "BUIU",
-      "position": "ATACANTE",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "7739fdce-ae38-4522-bcaa-80a7d2fe674a",
-      "name": "CHRISTIAN",
-      "position": "ZAGUEIRO",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "4f467cfd-1909-452e-a06d-fa68dc8be288",
-      "name": "DANIEL",
-      "position": "ATACANTE",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "e997a873-aaf3-406c-a49a-5b25a24c7af3",
-      "name": "DUDU",
-      "position": "ZAGUEIRO",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "b0ef9cea-8541-4322-bee3-999bf4af3afd",
-      "name": "EDSON",
-      "position": "ATACANTE",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "7295216a-62b6-4ebe-8c2f-c6545f3d9d6b",
-      "name": "EDGAR",
-      "position": "LATERAL",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "f4107d11-628e-4992-84d3-bdce9cdab413",
-      "name": "BRUNO",
-      "position": "MEIO-CAMPO",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "21d82fd0-527a-4f76-9cbc-3708e32c6f4f",
-      "name": "ESQUERDA",
-      "position": "MEIO-CAMPO",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "7bda06e6-fd25-48be-9c7f-65d9783d16c0",
-      "name": "FAROFA",
-      "position": "MEIO-CAMPO",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "4f3e8085-6f48-463a-8a83-95ac8fa65331",
-      "name": "ZAZÁ",
-      "position": "MEIO-CAMPO",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "b695486f-83fd-4eda-a7e0-06728e445643",
-      "name": "GABIGOL",
-      "position": "ATACANTE",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "08eb1b60-f87a-4435-87c3-475537bda780",
-      "name": "HENRY",
-      "position": "MEIO-CAMPO",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "53cdab41-6e37-4766-affb-905f2410daf6",
-      "name": "IGOR",
-      "position": "MEIO-CAMPO",
-      "shirt_number": "",
-      "date_of_birth": "14/05/1988",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "5a8a11ec-3dd2-496e-8ab4-0c814821179f",
-      "name": "ÍNDIO",
-      "position": "LATERAL",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "17dfcb15-5b3d-4456-9168-ecdb85c9c7cf",
-      "name": "LEANDRO",
-      "position": "ZAGUEIRO",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "2fb64c54-b849-487f-96f2-27aa5c31d227",
-      "name": "LUCINHO",
-      "position": "ATACANTE",
-      "shirt_number": "",
-      "date_of_birth": "21/06/1979",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "019f404e-18f3-4c68-9e7c-a418a2aaaccf",
-      "name": "ELISON ",
-      "position": "GOLEIRO",
-      "shirt_number": "1",
-      "date_of_birth": "23/05/1995",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "61475f05-4733-494b-9e5c-5fee719977a7",
-      "name": "MARCINHO",
-      "position": "MEIO-CAMPO",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "1be27436-2c34-4cc5-af17-e2781aac607e",
-      "name": "MOISÉS",
-      "position": "LATERAL",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "5ababf98-a4c1-4bd4-a77c-def1943ba708",
-      "name": "ROGÉRIO",
-      "position": "ZAGUEIRO",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "e2119b7f-dbc9-4ebe-a914-d7125103c73f",
-      "name": "THIAGO",
-      "position": "ZAGUEIRO",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "93776d84-a24d-478d-b4f2-4bcee57a6c6f",
-      "name": "YURI",
-      "position": "MEIO-CAMPO",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
-    },
-    {
-      "id": "efd31a43-e4d8-4e99-b238-589e07eecd5c",
-      "name": "WASHINGTON",
-      "position": "LATERAL",
-      "shirt_number": "",
-      "date_of_birth": "",
-      "phone": "",
-      "photo_file": "Nenhuma",
-      "team_start_date": "12/03/2026"
+      "team_start_date": "17/03/2026",
+      "level": 3
     }
   ],
-  "monthly_payments": {
-    "2026": {
-      "94d6d5ac-d98a-47f1-b51f-ec07df1ca339": {
-        "3": "Paga"
-      }
-    }
-  },
+  "monthly_payments": {},
   "game_stats": [],
-  "transactions": [
-    {
-      "id": "bb9b52e2-9d5e-4831-8375-b9d36d098b14",
-      "date": "2026-03-18",
-      "description": "ALEX - MENSALIDADE ABRIL",
-      "type": "income",
-      "category": "Mensalidade",
-      "amount": 35
-    }
-  ],
+  "transactions": [],
   "users": [
     {
-      "id": "4fd1f15f-7b5b-4890-8447-f2bb106b9f01",
-      "name": "Renato",
-      "role": "Diretoria",
-      "permissions": [
-        "all"
-      ],
-      "photo_file": "",
-      "password": "$2b$10$uVEs7OCufewRfihOGJGTtOyAVrAcrBdS406bDxFk5KilF/9gOvrmC"
+      "id": "4ac0f155-3cc7-4e32-8cc7-63b4e9ff34ba",
+      "name": "Gabriel",
+      "password": "$2b$10$DM80vjH9ofOkBXuDP4q00ejFy1e4SgA/gUL2XYrL4453a8.v1HmPq",
+      "role": "Diretoria"
+    },
+    {
+      "id": "00f65cf5-1aa1-4ea3-aef9-528e365bdb71",
+      "name": "Gabriel",
+      "password": "$2b$10$ffg.YNMX3ThNF9ajoTnhceZrzeKwqx1MnqqpnZ/7hy1rxFngaZbWS",
+      "role": "Diretoria"
+    },
+    {
+      "id": "renato-id-123",
+      "name": "renato",
+      "password": "123",
+      "role": "Diretoria"
     }
   ]
 }

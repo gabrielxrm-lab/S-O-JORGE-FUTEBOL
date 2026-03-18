@@ -93,6 +93,16 @@ export const api = {
     if (!res.ok) throw new Error('Failed to save payments');
   },
 
+  async saveSinglePayment(year: string, playerId: string, month: string, status: string): Promise<any> {
+    const res = await fetch('/api/payments/single', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ year, playerId, month, status }),
+    });
+    if (!res.ok) throw new Error('Failed to save single payment');
+    return res.json();
+  },
+
   async saveStats(stats: GameStat[]): Promise<void> {
     const res = await fetch('/api/stats', {
       method: 'POST',
