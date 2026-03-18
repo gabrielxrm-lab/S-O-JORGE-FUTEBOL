@@ -361,22 +361,6 @@ export function Home() {
               Ver Ranking Completo
             </Link>
           </section>
-
-          {/* Quick Stats Card */}
-          <section className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl p-6 shadow-2xl text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16"></div>
-            <h3 className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-4">Estatísticas do Clube</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-2xl font-black">{data?.players.length || 0}</p>
-                <p className="text-[10px] font-bold uppercase opacity-70">Jogadores</p>
-              </div>
-              <div>
-                <p className="text-2xl font-black">{[...new Set(data?.game_stats.map(s => s.date))].length}</p>
-                <p className="text-[10px] font-bold uppercase opacity-70">Partidas</p>
-              </div>
-            </div>
-          </section>
         </div>
       </div>
     </motion.div>
