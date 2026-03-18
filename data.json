@@ -32,6 +32,26 @@
       "photo_file": "Nenhuma",
       "team_start_date": "18/03/2026",
       "level": 2
+    },
+    {
+      "id": "6791e31a-5d61-4539-b886-ed4e5c8389ff",
+      "name": "EDSON",
+      "position": "ATACANTE",
+      "shirt_number": "9",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "18/03/2026"
+    },
+    {
+      "id": "190d6fa3-efd8-4eae-8c11-185b2e8dbf07",
+      "name": "BAIANO",
+      "position": "ATACANTE",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "18/03/2026"
     }
   ],
   "monthly_payments": {
