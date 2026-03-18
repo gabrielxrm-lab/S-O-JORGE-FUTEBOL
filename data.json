@@ -217,19 +217,7 @@
       }
     }
   },
-  "game_stats": [
-    {
-      "date": "17/03/2026",
-      "game_date": "2026-03-18",
-      "player_name": "GA",
-      "goals": 11,
-      "yellow_cards": 0,
-      "red_cards": 0,
-      "craque_do_jogo": 0,
-      "goleiro_do_jogo": 0,
-      "gol_do_jogo": 0
-    }
-  ],
+  "game_stats": [],
   "transactions": [
     {
       "id": "28138d0f-fccb-42e2-862d-0f7b843c9c78",
@@ -293,5 +281,6 @@
       "photo_file": "",
       "password": "$2b$10$9K7znicnC6Gl/qUSFolh6O6f816mkd5o.7HFm0r/cjtASfrON0UQ2"
     }
-  ]
+  ],
+  "matches": []
 }
