@@ -247,6 +247,22 @@ app.post('/api/matches', async (req, res) => {
   }
 });
 
+app.delete('/api/matches/:id', async (req, res) => {
+  try {
+    const data = await readData();
+    const matchToDelete = data.matches.find((m: any) => m.id === req.params.id);
+    if (matchToDelete) {
+      // Também removemos as estatísticas vinculadas àquela data
+      data.game_stats = data.game_stats.filter((s: any) => s.date !== matchToDelete.date);
+      data.matches = data.matches.filter((m: any) => m.id !== req.params.id);
+      await writeData(data);
+    }
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao excluir partida' });
+  }
+});
+
 app.delete('/api/stats', async (req, res) => {
   try {
     const data = await readData();

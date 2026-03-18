@@ -122,10 +122,9 @@ export function Home() {
         const [da, ma, ya] = a.date.split('/');
         const [db, mb, yb] = b.date.split('/');
         return new Date(`${yb}-${mb}-${db}`).getTime() - new Date(`${ya}-${ma}-${da}`).getTime();
-      }).pop()
+      })[0]
     : null;
 
-  const lastMatchStats = lastMatch ? data?.game_stats.filter(s => s.date === lastMatch.date) : [];
   const totalGoals = lastMatch ? (lastMatch.homeScore + lastMatch.awayScore) : 0;
 
   if (loading) {

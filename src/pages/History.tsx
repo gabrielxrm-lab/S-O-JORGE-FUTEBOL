@@ -1,19 +1,39 @@
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { api, AppData } from '../lib/api';
 import { motion } from 'motion/react';
-import { History as HistoryIcon, Calendar, Goal, Star, Shield, Activity } from 'lucide-react';
+import { History as HistoryIcon, Calendar, Goal, Star, Shield, Activity, Trash2 } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import toast from 'react-hot-toast';
 
 export function History() {
+  const { canAccess } = useAuth();
   const [data, setData] = useState<AppData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadData = () => {
+    setLoading(true);
     api.getData()
       .then(setData)
       .catch(console.error)
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
+
+  const handleDeleteMatch = async (matchId: string) => {
+    if (!window.confirm('Tem certeza que deseja excluir esta partida e todas as suas estatísticas?')) return;
+    
+    try {
+      await api.deleteMatch(matchId);
+      toast.success('Partida excluída com sucesso!');
+      loadData();
+    } catch (error) {
+      toast.error('Erro ao excluir partida');
+    }
+  };
 
   if (loading) {
     return <LoadingSpinner fullScreen />;
@@ -55,6 +75,7 @@ export function History() {
         ) : (
           sortedDates.map((date, index) => {
             const stats = matchesByDate.get(date) || [];
+            const matchInfo = data?.matches?.find(m => m.date === date);
             
             // Calculate match highlights
             const totalGoals = stats.reduce((sum, s) => sum + (s.goals || 0), 0);
@@ -70,10 +91,35 @@ export function History() {
                 <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-[#111] border border-white/5 p-6 rounded-3xl shadow-xl hover:border-indigo-500/30 transition-colors">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                     <h3 className="font-black text-xl text-white">{date}</h3>
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full w-fit">
-                      <Goal size={14} /> {totalGoals} Gols
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full w-fit">
+                        <Goal size={14} /> {totalGoals} Gols
+                      </div>
+                      {canAccess('matches') && matchInfo && (
+                        <button 
+                          onClick={() => handleDeleteMatch(matchInfo.id)}
+                          className="p-1.5 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                          title="Excluir Partida"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
                   </div>
+
+                  {matchInfo && (
+                    <div className="mb-6 p-4 bg-black/30 rounded-2xl border border-white/5 flex items-center justify-center gap-6">
+                      <div className="text-center">
+                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{matchInfo.homeTeam}</p>
+                        <p className="text-3xl font-black text-white">{matchInfo.homeScore}</p>
+                      </div>
+                      <div className="text-zinc-700 font-black text-xl">X</div>
+                      <div className="text-center">
+                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{matchInfo.awayTeam}</p>
+                        <p className="text-3xl font-black text-white">{matchInfo.awayScore}</p>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-3">
                     {craques.length > 0 && (
