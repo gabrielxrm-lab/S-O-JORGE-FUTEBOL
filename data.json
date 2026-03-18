@@ -220,14 +220,6 @@
   "game_stats": [],
   "transactions": [
     {
-      "id": "9cec498f-4658-4a55-80d1-e96664dcc981",
-      "date": "2026-03-18",
-      "description": "ALEX - MENSALIDADE MARÇO",
-      "type": "income",
-      "category": "Mensalidade",
-      "amount": 35
-    },
-    {
       "id": "b72214a3-502e-44d4-89c2-702d3ce09fb7",
       "date": "2026-03-18",
       "description": "RENATO - MENSALIDADE ABRIL",
