@@ -152,6 +152,36 @@
       "phone": "",
       "photo_file": "Nenhuma",
       "team_start_date": "18/03/2026"
+    },
+    {
+      "id": "9dc0eb07-76ca-4932-9f5b-1253638fa87a",
+      "name": "BUIÚ ZAGUEIRO",
+      "position": "ZAGUEIRO",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "18/03/2026"
+    },
+    {
+      "id": "5d040bcd-3a12-449f-81e0-7f98ac410029",
+      "name": "BUIÚ",
+      "position": "ATACANTE",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "18/03/2026"
+    },
+    {
+      "id": "db9ed191-f63f-4855-9144-9fe03f901e76",
+      "name": "ROBSON",
+      "position": "MEIO-CAMPO",
+      "shirt_number": "",
+      "date_of_birth": "",
+      "phone": "",
+      "photo_file": "Nenhuma",
+      "team_start_date": "18/03/2026"
     }
   ],
   "monthly_payments": {
