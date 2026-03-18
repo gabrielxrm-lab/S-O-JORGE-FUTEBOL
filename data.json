@@ -17,18 +17,6 @@
   "transactions": [],
   "users": [
     {
-      "id": "4ac0f155-3cc7-4e32-8cc7-63b4e9ff34ba",
-      "name": "Gabriel",
-      "password": "$2b$10$DM80vjH9ofOkBXuDP4q00ejFy1e4SgA/gUL2XYrL4453a8.v1HmPq",
-      "role": "Diretoria"
-    },
-    {
-      "id": "00f65cf5-1aa1-4ea3-aef9-528e365bdb71",
-      "name": "Gabriel",
-      "password": "$2b$10$ffg.YNMX3ThNF9ajoTnhceZrzeKwqx1MnqqpnZ/7hy1rxFngaZbWS",
-      "role": "Diretoria"
-    },
-    {
       "id": "renato-id-123",
       "name": "renato",
       "password": "123",
