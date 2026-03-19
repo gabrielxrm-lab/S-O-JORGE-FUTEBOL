@@ -220,20 +220,20 @@
   "game_stats": [],
   "transactions": [
     {
-      "id": "0dd359e5-a17b-4045-977b-c00b5e2b3bcf",
-      "date": "2026-03-19",
-      "description": "CASA DA PIZZA",
-      "type": "income",
-      "category": "Patrocínio",
-      "amount": 100
-    },
-    {
       "id": "05511b91-1438-44a5-9eaf-13d33100d5be",
       "date": "2026-03-19",
       "description": "GESSO",
       "type": "expense",
       "category": "Outros",
       "amount": 39.78
+    },
+    {
+      "id": "6504329d-e6ba-496c-879c-d0c48f440d1b",
+      "date": "2026-03-19",
+      "description": "LAVAGEM",
+      "type": "expense",
+      "category": "Lavagem",
+      "amount": 170
     }
   ],
   "users": [
