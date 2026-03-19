@@ -218,16 +218,7 @@
     }
   },
   "game_stats": [],
-  "transactions": [
-    {
-      "id": "6504329d-e6ba-496c-879c-d0c48f440d1b",
-      "date": "2026-03-19",
-      "description": "LAVAGEM",
-      "type": "expense",
-      "category": "Lavagem",
-      "amount": 170
-    }
-  ],
+  "transactions": [],
   "users": [
     {
       "id": "2f3d9ba9-3918-4cf0-9167-66574125b945",
