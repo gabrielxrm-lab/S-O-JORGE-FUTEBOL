@@ -22,7 +22,7 @@ export function Payments() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportStartDate, setReportStartDate] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
   const [reportEndDate, setReportEndDate] = useState(new Date().toISOString().split('T')[0]);
-  const [newTx, setNewTx] = useState<Partial<Transaction>>({ type: 'income', date: new Date().toISOString().split('T')[0] });
+  const [newTx, setNewTx] = useState<any>({ type: 'income', date: new Date().toISOString().split('T')[0], amount: '' });
 
   useEffect(() => {
     if (!canAccess('payments')) {
@@ -65,7 +65,7 @@ export function Payments() {
       const fullMonth = fullMonthNames[monthName] || monthName;
       
       const amountStr = window.prompt(`Qual o valor da mensalidade de ${player.name} para ${fullMonth}?`, "35");
-      if (amountStr === null) return; // Cancelled
+      if (amountStr === null) return;
       
       const amount = parseFloat(amountStr.replace(',', '.')) || 35;
       
@@ -118,18 +118,23 @@ export function Payments() {
   };
 
   const handleSaveTx = async () => {
-    if (!newTx.description || !newTx.amount || !newTx.category) {
-      toast.error('Preencha todos os campos');
+    // Converte vírgula para ponto antes de validar
+    const amountValue = typeof newTx.amount === 'string' 
+      ? parseFloat(newTx.amount.replace(',', '.')) 
+      : newTx.amount;
+
+    if (!newTx.description || isNaN(amountValue) || !newTx.category) {
+      toast.error('Preencha todos os campos corretamente');
       return;
     }
     
     const tx: Transaction = {
       id: newTx.id || uuidv4(),
       date: newTx.date || new Date().toISOString().split('T')[0],
-      description: newTx.description,
+      description: newTx.description.toUpperCase(),
       type: newTx.type as 'income' | 'expense',
       category: newTx.category,
-      amount: Number(newTx.amount)
+      amount: amountValue
     };
 
     try {
@@ -138,7 +143,7 @@ export function Payments() {
       toast.dismiss(loadingToast);
       toast.success('Transação salva!');
       setShowTxModal(false);
-      setNewTx({ type: 'income', date: new Date().toISOString().split('T')[0] });
+      setNewTx({ type: 'income', date: new Date().toISOString().split('T')[0], amount: '' });
       loadData();
     } catch (error) {
       console.error(error);
@@ -168,8 +173,8 @@ export function Payments() {
       return txDate >= start && txDate <= end;
     }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    const totalInc = filteredTx.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
-    const totalExp = filteredTx.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
+    const totalInc = filteredTx.filter(t => t.type === 'income').reduce((acc, t) => acc + (Number(t.amount) || 0), 0);
+    const totalExp = filteredTx.filter(t => t.type === 'expense').reduce((acc, t) => acc + (Number(t.amount) || 0), 0);
     const bal = totalInc - totalExp;
 
     try {
@@ -211,7 +216,7 @@ export function Payments() {
       tx.description,
       tx.category,
       tx.type === 'income' ? 'Entrada' : 'Saída',
-      `R$ ${tx.amount.toFixed(2)}`
+      `R$ ${(Number(tx.amount) || 0).toFixed(2)}`
     ]);
 
     autoTable(doc, {
@@ -248,9 +253,15 @@ export function Payments() {
   const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   const years = Array.from({ length: 7 }, (_, i) => (new Date().getFullYear() - 2 + i).toString());
 
-  const totalIncome = transactions.reduce((acc, t) => t.type === 'income' ? acc + t.amount : acc, 0);
-  const totalExpense = transactions.reduce((acc, t) => t.type === 'expense' ? acc + t.amount : acc, 0);
+  // Cálculos robustos garantindo que valores nulos ou strings não quebrem a soma
+  const totalIncome = transactions.reduce((acc, t) => t.type === 'income' ? acc + (Number(t.amount) || 0) : acc, 0);
+  const totalExpense = transactions.reduce((acc, t) => t.type === 'expense' ? acc + (Number(t.amount) || 0) : acc, 0);
   const balance = totalIncome - totalExpense;
+
+  const formatCurrency = (value: any) => {
+    const num = Number(value) || 0;
+    return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
 
   if (loading) {
     return <LoadingSpinner fullScreen />;
@@ -306,7 +317,6 @@ export function Payments() {
 
                 const message = `Fala galera! A mensalidade de ${fullMonth} está pendente para alguns jogadores. Fortalece o São Jorge aí! 👊`;
                 
-                // For mass messaging, we usually open WhatsApp Web with just the text to paste in a group
                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
               }}
               className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors"
@@ -397,14 +407,14 @@ export function Payments() {
                 <TrendingUp size={24} />
                 <h3 className="font-medium text-zinc-400">Entradas</h3>
               </div>
-              <p className="text-3xl font-bold text-white">R$ {totalIncome.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-white">R$ {formatCurrency(totalIncome)}</p>
             </div>
             <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
               <div className="flex items-center gap-3 text-red-500 mb-2">
                 <TrendingDown size={24} />
                 <h3 className="font-medium text-zinc-400">Saídas</h3>
               </div>
-              <p className="text-3xl font-bold text-white">R$ {totalExpense.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-white">R$ {formatCurrency(totalExpense)}</p>
             </div>
             <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
               <div className="flex items-center gap-3 text-indigo-500 mb-2">
@@ -412,7 +422,7 @@ export function Payments() {
                 <h3 className="font-medium text-zinc-400">Saldo Atual</h3>
               </div>
               <p className={`text-3xl font-bold ${balance >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                R$ {balance.toFixed(2)}
+                R$ {formatCurrency(balance)}
               </p>
             </div>
           </div>
@@ -464,7 +474,7 @@ export function Payments() {
                       <td className="px-6 py-4 text-white font-medium">{tx.description}</td>
                       <td className="px-6 py-4 text-zinc-400">{tx.category}</td>
                       <td className={`px-6 py-4 text-right font-bold ${tx.type === 'income' ? 'text-emerald-500' : 'text-red-500'}`}>
-                        {tx.type === 'income' ? '+' : '-'} R$ {tx.amount.toFixed(2)}
+                        {tx.type === 'income' ? '+' : '-'} R$ {formatCurrency(tx.amount)}
                       </td>
                       <td className="px-6 py-4 text-center">
                         <button 
@@ -572,11 +582,10 @@ export function Payments() {
               <div>
                 <label className="block text-sm font-medium text-zinc-400 mb-1">Valor (R$)</label>
                 <input 
-                  type="number" 
-                  step="0.01"
+                  type="text" 
                   value={newTx.amount || ''}
-                  onChange={e => setNewTx({...newTx, amount: parseFloat(e.target.value)})}
-                  placeholder="0.00"
+                  onChange={e => setNewTx({...newTx, amount: e.target.value})}
+                  placeholder="0,00"
                   className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
                 />
               </div>
