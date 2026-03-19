@@ -217,31 +217,25 @@
       }
     }
   },
-  "game_stats": [
+  "game_stats": [],
+  "transactions": [
     {
-      "date": "17/03/2026",
-      "game_date": "2026-03-18",
-      "player_name": "GABRIEL",
-      "goals": 6,
-      "yellow_cards": 0,
-      "red_cards": 0,
-      "craque_do_jogo": 0,
-      "goleiro_do_jogo": 0,
-      "gol_do_jogo": 0
+      "id": "0dd359e5-a17b-4045-977b-c00b5e2b3bcf",
+      "date": "2026-03-19",
+      "description": "CASA DA PIZZA",
+      "type": "income",
+      "category": "Patrocínio",
+      "amount": 100
     },
     {
-      "date": "17/03/2026",
-      "game_date": "2026-03-18",
-      "player_name": "RENATO",
-      "goals": 5,
-      "yellow_cards": 0,
-      "red_cards": 0,
-      "craque_do_jogo": 0,
-      "goleiro_do_jogo": 0,
-      "gol_do_jogo": 0
+      "id": "e93bf1aa-c327-420e-ad9c-dca81ebef4c6",
+      "date": "2026-03-19",
+      "description": "39,78",
+      "type": "expense",
+      "category": "Outros",
+      "amount": 39.78
     }
   ],
-  "transactions": [],
   "users": [
     {
       "id": "2f3d9ba9-3918-4cf0-9167-66574125b945",
@@ -264,14 +258,5 @@
       "password": "$2b$10$9K7znicnC6Gl/qUSFolh6O6f816mkd5o.7HFm0r/cjtASfrON0UQ2"
     }
   ],
-  "matches": [
-    {
-      "id": "fd519c92-2c0c-4d2d-b868-997fd38a9c7a",
-      "date": "17/03/2026",
-      "homeTeam": "MILAN",
-      "awayTeam": "INTER",
-      "homeScore": 6,
-      "awayScore": 5
-    }
-  ]
+  "matches": []
 }
