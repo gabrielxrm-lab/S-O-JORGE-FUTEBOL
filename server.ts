@@ -29,17 +29,17 @@ const defaultData = {
 let memoryData: any = null;
 const LOCAL_DATA_FILE = path.join(process.cwd(), 'data.json');
 
-// Função mestre para ler dados com segurança total
+// --- SISTEMA DE FILA PARA EVITAR CONCORRÊNCIA ---
+let writeQueue = Promise.resolve();
+
 async function readData() {
   try {
-    // Sempre tenta ler do arquivo local primeiro para ter a versão mais recente em disco
     const localContent = await fs.readFile(LOCAL_DATA_FILE, 'utf-8');
     const dataFromFile = JSON.parse(localContent);
     memoryData = { ...defaultData, ...dataFromFile };
     return memoryData;
   } catch (err) {
-    console.log('[Storage] Arquivo local não encontrado ou erro na leitura, tentando GitHub...');
-    
+    console.log('[Storage] Lendo do GitHub...');
     const { token, repo, branch, filePath } = getGitHubConfig();
     if (token) {
       try {
@@ -57,7 +57,6 @@ async function readData() {
           const content = Buffer.from(fileData.content, 'base64').toString('utf-8');
           const dataFromGH = JSON.parse(content);
           memoryData = { ...defaultData, ...dataFromGH };
-          // Salva localmente para as próximas leituras serem rápidas
           await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(memoryData, null, 2));
           return memoryData;
         }
@@ -66,40 +65,50 @@ async function readData() {
       }
     }
   }
-
-  // Se tudo falhar, usa o que está em memória ou o padrão
   if (!memoryData) memoryData = { ...defaultData };
   return memoryData;
 }
 
-// Função mestre para escrever dados garantindo que nada seja apagado
+// Função de escrita protegida por fila e gravação atômica
 async function writeData(newData: any) {
-  // 1. Carrega os dados atuais para garantir que temos a versão mais fresca
-  const currentData = await readData();
-  
-  // 2. Mescla os dados novos com os atuais (newData sobrescreve apenas as chaves enviadas)
-  const updatedData = { ...currentData, ...newData };
-  
-  // 3. Atualiza a memória global
-  memoryData = JSON.parse(JSON.stringify(updatedData));
-  
-  // 4. Salva no arquivo local imediatamente
-  try {
-    await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(memoryData, null, 2));
-    console.log('[Storage] Dados salvos localmente com sucesso.');
-  } catch (err) {
-    console.error('[Storage] Erro crítico ao salvar localmente:', err);
-  }
+  return writeQueue = writeQueue.then(async () => {
+    try {
+      // 1. Carrega a versão mais atual do disco
+      const currentData = await readData();
+      
+      // 2. Mescla os dados
+      const updatedData = { ...currentData, ...newData };
 
-  // 5. Sincroniza com o GitHub em segundo plano
-  const { token, repo, branch, filePath } = getGitHubConfig();
-  if (token) {
-    performGitHubWrite(memoryData, token, repo, branch, filePath).catch(err => {
-      console.error('[GitHub] Erro na sincronização:', err.message);
-    });
-  }
-  
-  return memoryData;
+      // 3. VALIDAÇÃO DE INTEGRIDADE: Nunca salva se campos essenciais sumirem
+      if (!updatedData.players || !Array.isArray(updatedData.players)) {
+        console.error('[Integrity] Bloqueada tentativa de salvar dados corrompidos.');
+        return currentData;
+      }
+
+      memoryData = JSON.parse(JSON.stringify(updatedData));
+      const jsonString = JSON.stringify(memoryData, null, 2);
+
+      // 4. GRAVAÇÃO ATÔMICA: Escreve num arquivo temporário primeiro
+      const tempFile = `${LOCAL_DATA_FILE}.tmp`;
+      await fs.writeFile(tempFile, jsonString);
+      await fs.rename(tempFile, LOCAL_DATA_FILE);
+
+      console.log('[Storage] Dados salvos com integridade.');
+
+      // 5. Sincroniza com GitHub em background
+      const { token, repo, branch, filePath } = getGitHubConfig();
+      if (token) {
+        performGitHubWrite(memoryData, token, repo, branch, filePath).catch(err => {
+          console.error('[GitHub] Erro na sincronização:', err.message);
+        });
+      }
+      
+      return memoryData;
+    } catch (err) {
+      console.error('[Storage] Erro crítico na gravação:', err);
+      throw err;
+    }
+  });
 }
 
 async function performGitHubWrite(data: any, token: string, repo: string, branch: string, filePath: string) {
@@ -123,18 +132,12 @@ async function performGitHubWrite(data: any, token: string, repo: string, branch
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      message: 'Update data.json [Automated Integrity Check]',
+      message: 'Update data.json [Atomic Integrity Sync]',
       content: content,
       sha: sha || undefined,
       branch: branch
     })
   });
-
-  if (putRes.ok) {
-    console.log('[GitHub] Sincronização concluída.');
-  } else {
-    console.error('[GitHub] Falha na sincronização:', await putRes.text());
-  }
 }
 
 // --- Rotas da API ---
@@ -161,11 +164,7 @@ app.post('/api/data/restore', async (req, res) => {
     if (!newData.players || !Array.isArray(newData.players)) {
       return res.status(400).json({ error: 'Formato de dados inválido' });
     }
-    // No restore, forçamos a substituição total
-    memoryData = { ...defaultData, ...newData };
-    await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(memoryData, null, 2));
-    const { token, repo, branch, filePath } = getGitHubConfig();
-    if (token) await performGitHubWrite(memoryData, token, repo, branch, filePath);
+    await writeData(newData);
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao restaurar dados' });
@@ -178,10 +177,8 @@ app.post('/api/players', async (req, res) => {
     const newPlayer = req.body;
     const players = [...data.players];
     const idx = players.findIndex((p: any) => p.id === newPlayer.id);
-    
     if (idx >= 0) players[idx] = newPlayer;
     else players.push(newPlayer);
-    
     await writeData({ players });
     res.json({ success: true });
   } catch (error) {
