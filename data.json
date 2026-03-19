@@ -226,6 +226,14 @@
       "type": "expense",
       "category": "Lavagem",
       "amount": 170
+    },
+    {
+      "id": "b0664284-23dd-49f4-8070-faa650d9d120",
+      "date": "2026-03-19",
+      "description": "lavagem",
+      "type": "expense",
+      "category": "Lavagem",
+      "amount": 170
     }
   ],
   "users": [
