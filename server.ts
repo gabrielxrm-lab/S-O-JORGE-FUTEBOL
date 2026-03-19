@@ -7,7 +7,6 @@ import fs from 'fs/promises';
 const app = express();
 const PORT = 3000;
 
-// Aumentando o limite para 100mb para garantir suporte total a grandes volumes de fotos
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
@@ -28,21 +27,18 @@ const defaultData = {
 };
 
 let memoryData: any = null;
-let isInitialized = false;
 const LOCAL_DATA_FILE = path.join(process.cwd(), 'data.json');
 
+// Função mestre para ler dados com segurança total
 async function readData() {
-  if (isInitialized && memoryData) {
-    return memoryData;
-  }
-
-  let dataFromFile: any = {};
-
   try {
+    // Sempre tenta ler do arquivo local primeiro para ter a versão mais recente em disco
     const localContent = await fs.readFile(LOCAL_DATA_FILE, 'utf-8');
-    dataFromFile = JSON.parse(localContent);
+    const dataFromFile = JSON.parse(localContent);
+    memoryData = { ...defaultData, ...dataFromFile };
+    return memoryData;
   } catch (err) {
-    console.log('[Storage] Arquivo local não encontrado, tentando GitHub...');
+    console.log('[Storage] Arquivo local não encontrado ou erro na leitura, tentando GitHub...');
     
     const { token, repo, branch, filePath } = getGitHubConfig();
     if (token) {
@@ -59,7 +55,11 @@ async function readData() {
         if (res.ok) {
           const fileData = await res.json();
           const content = Buffer.from(fileData.content, 'base64').toString('utf-8');
-          dataFromFile = JSON.parse(content);
+          const dataFromGH = JSON.parse(content);
+          memoryData = { ...defaultData, ...dataFromGH };
+          // Salva localmente para as próximas leituras serem rápidas
+          await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(memoryData, null, 2));
+          return memoryData;
         }
       } catch (error) {
         console.error('[GitHub] Erro ao ler dados:', error);
@@ -67,33 +67,39 @@ async function readData() {
     }
   }
 
-  // IMPORTANTE: Mesclar com defaultData para garantir que todas as chaves existam
-  memoryData = { ...defaultData, ...dataFromFile };
-  isInitialized = true;
-  
-  // Salva localmente para garantir consistência
-  await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(memoryData, null, 2)).catch(() => {});
-  
+  // Se tudo falhar, usa o que está em memória ou o padrão
+  if (!memoryData) memoryData = { ...defaultData };
   return memoryData;
 }
 
-async function writeData(data: any) {
-  // Garante que estamos salvando um objeto completo mesclando com o que já temos em memória
-  const updatedData = { ...defaultData, ...memoryData, ...data };
+// Função mestre para escrever dados garantindo que nada seja apagado
+async function writeData(newData: any) {
+  // 1. Carrega os dados atuais para garantir que temos a versão mais fresca
+  const currentData = await readData();
+  
+  // 2. Mescla os dados novos com os atuais (newData sobrescreve apenas as chaves enviadas)
+  const updatedData = { ...currentData, ...newData };
+  
+  // 3. Atualiza a memória global
   memoryData = JSON.parse(JSON.stringify(updatedData));
   
+  // 4. Salva no arquivo local imediatamente
   try {
     await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(memoryData, null, 2));
+    console.log('[Storage] Dados salvos localmente com sucesso.');
   } catch (err) {
-    console.error('[Storage] Erro ao salvar localmente:', err);
+    console.error('[Storage] Erro crítico ao salvar localmente:', err);
   }
 
+  // 5. Sincroniza com o GitHub em segundo plano
   const { token, repo, branch, filePath } = getGitHubConfig();
   if (token) {
     performGitHubWrite(memoryData, token, repo, branch, filePath).catch(err => {
       console.error('[GitHub] Erro na sincronização:', err.message);
     });
   }
+  
+  return memoryData;
 }
 
 async function performGitHubWrite(data: any, token: string, repo: string, branch: string, filePath: string) {
@@ -109,7 +115,7 @@ async function performGitHubWrite(data: any, token: string, repo: string, branch
   }
 
   const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
-  await fetch(url, {
+  const putRes = await fetch(url, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -117,12 +123,18 @@ async function performGitHubWrite(data: any, token: string, repo: string, branch
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      message: 'Update data.json [Automated]',
+      message: 'Update data.json [Automated Integrity Check]',
       content: content,
       sha: sha || undefined,
       branch: branch
     })
   });
+
+  if (putRes.ok) {
+    console.log('[GitHub] Sincronização concluída.');
+  } else {
+    console.error('[GitHub] Falha na sincronização:', await putRes.text());
+  }
 }
 
 // --- Rotas da API ---
@@ -149,9 +161,11 @@ app.post('/api/data/restore', async (req, res) => {
     if (!newData.players || !Array.isArray(newData.players)) {
       return res.status(400).json({ error: 'Formato de dados inválido' });
     }
-    // No restore, substituímos tudo, mas garantimos as chaves básicas
+    // No restore, forçamos a substituição total
     memoryData = { ...defaultData, ...newData };
-    await writeData(memoryData);
+    await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(memoryData, null, 2));
+    const { token, repo, branch, filePath } = getGitHubConfig();
+    if (token) await performGitHubWrite(memoryData, token, repo, branch, filePath);
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao restaurar dados' });
@@ -162,23 +176,15 @@ app.post('/api/players', async (req, res) => {
   try {
     const data = await readData();
     const newPlayer = req.body;
+    const players = [...data.players];
+    const idx = players.findIndex((p: any) => p.id === newPlayer.id);
     
-    if (!newPlayer.id) {
-      return res.status(400).json({ error: 'ID do jogador é obrigatório' });
-    }
-
-    const existingIndex = data.players.findIndex((p: any) => p.id === newPlayer.id);
+    if (idx >= 0) players[idx] = newPlayer;
+    else players.push(newPlayer);
     
-    if (existingIndex >= 0) {
-      data.players[existingIndex] = newPlayer;
-    } else {
-      data.players.push(newPlayer);
-    }
-    
-    await writeData(data);
-    res.json({ success: true, player: newPlayer });
+    await writeData({ players });
+    res.json({ success: true });
   } catch (error) {
-    console.error('Erro ao salvar jogador:', error);
     res.status(500).json({ error: 'Erro ao salvar jogador' });
   }
 });
@@ -186,28 +192,15 @@ app.post('/api/players', async (req, res) => {
 app.delete('/api/players/:id', async (req, res) => {
   try {
     const data = await readData();
-    data.players = data.players.filter((p: any) => p.id !== req.params.id);
-    if (data.monthly_payments) {
-      for (const year in data.monthly_payments) {
-        if (data.monthly_payments[year][req.params.id]) delete data.monthly_payments[year][req.params.id];
-      }
+    const players = data.players.filter((p: any) => p.id !== req.params.id);
+    const monthly_payments = { ...data.monthly_payments };
+    for (const year in monthly_payments) {
+      if (monthly_payments[year][req.params.id]) delete monthly_payments[year][req.params.id];
     }
-    await writeData(data);
+    await writeData({ players, monthly_payments });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao excluir jogador' });
-  }
-});
-
-app.post('/api/payments', async (req, res) => {
-  try {
-    const data = await readData();
-    const { year, payments } = req.body;
-    data.monthly_payments[year] = payments;
-    await writeData(data);
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao salvar pagamentos' });
   }
 });
 
@@ -215,10 +208,11 @@ app.put('/api/payments/single', async (req, res) => {
   try {
     const data = await readData();
     const { year, playerId, month, status } = req.body;
-    if (!data.monthly_payments[year]) data.monthly_payments[year] = {};
-    if (!data.monthly_payments[year][playerId]) data.monthly_payments[year][playerId] = {};
-    data.monthly_payments[year][playerId][month] = status;
-    await writeData(data);
+    const monthly_payments = { ...data.monthly_payments };
+    if (!monthly_payments[year]) monthly_payments[year] = {};
+    if (!monthly_payments[year][playerId]) monthly_payments[year][playerId] = {};
+    monthly_payments[year][playerId][month] = status;
+    await writeData({ monthly_payments });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao salvar pagamento' });
@@ -228,8 +222,8 @@ app.put('/api/payments/single', async (req, res) => {
 app.post('/api/stats', async (req, res) => {
   try {
     const data = await readData();
-    data.game_stats.push(...req.body);
-    await writeData(data);
+    const game_stats = [...data.game_stats, ...req.body];
+    await writeData({ game_stats });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao salvar estatísticas' });
@@ -239,8 +233,8 @@ app.post('/api/stats', async (req, res) => {
 app.post('/api/matches', async (req, res) => {
   try {
     const data = await readData();
-    data.matches.push(req.body);
-    await writeData(data);
+    const matches = [...data.matches, req.body];
+    await writeData({ matches });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao salvar partida' });
@@ -252,10 +246,9 @@ app.delete('/api/matches/:id', async (req, res) => {
     const data = await readData();
     const matchToDelete = data.matches.find((m: any) => m.id === req.params.id);
     if (matchToDelete) {
-      // Também removemos as estatísticas vinculadas àquela data
-      data.game_stats = data.game_stats.filter((s: any) => s.date !== matchToDelete.date);
-      data.matches = data.matches.filter((m: any) => m.id !== req.params.id);
-      await writeData(data);
+      const game_stats = data.game_stats.filter((s: any) => s.date !== matchToDelete.date);
+      const matches = data.matches.filter((m: any) => m.id !== req.params.id);
+      await writeData({ game_stats, matches });
     }
     res.json({ success: true });
   } catch (error) {
@@ -265,10 +258,7 @@ app.delete('/api/matches/:id', async (req, res) => {
 
 app.delete('/api/stats', async (req, res) => {
   try {
-    const data = await readData();
-    data.game_stats = [];
-    data.matches = [];
-    await writeData(data);
+    await writeData({ game_stats: [], matches: [] });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao limpar estatísticas' });
@@ -279,8 +269,8 @@ app.put('/api/stats/player', async (req, res) => {
   try {
     const data = await readData();
     const { player_name, goals, yellow_cards, red_cards, craque, goleiro, gol } = req.body;
-    data.game_stats = data.game_stats.filter((s: any) => s.player_name !== player_name);
-    data.game_stats.push({
+    const game_stats = data.game_stats.filter((s: any) => s.player_name !== player_name);
+    game_stats.push({
       game_date: new Date().toISOString().split('T')[0],
       player_name,
       goals: Number(goals || 0),
@@ -290,7 +280,7 @@ app.put('/api/stats/player', async (req, res) => {
       goleiro_do_jogo: Number(goleiro || 0),
       gol_do_jogo: Number(gol || 0)
     });
-    await writeData(data);
+    await writeData({ game_stats });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao atualizar estatísticas' });
@@ -301,10 +291,11 @@ app.post('/api/transactions', async (req, res) => {
   try {
     const data = await readData();
     const newTx = req.body;
-    const idx = data.transactions.findIndex((t: any) => t.id === newTx.id);
-    if (idx >= 0) data.transactions[idx] = newTx;
-    else data.transactions.push(newTx);
-    await writeData(data);
+    const transactions = [...data.transactions];
+    const idx = transactions.findIndex((t: any) => t.id === newTx.id);
+    if (idx >= 0) transactions[idx] = newTx;
+    else transactions.push(newTx);
+    await writeData({ transactions });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao salvar transação' });
@@ -314,8 +305,8 @@ app.post('/api/transactions', async (req, res) => {
 app.delete('/api/transactions/:id', async (req, res) => {
   try {
     const data = await readData();
-    data.transactions = data.transactions.filter((t: any) => t.id !== req.params.id);
-    await writeData(data);
+    const transactions = data.transactions.filter((t: any) => t.id !== req.params.id);
+    await writeData({ transactions });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao excluir transação' });
@@ -352,14 +343,15 @@ app.post('/api/users', async (req, res) => {
     if (newUser.password && !newUser.password.startsWith('$2')) {
       newUser.password = await bcrypt.hash(newUser.password, 10);
     }
-    const idx = data.users.findIndex((u: any) => u.id === newUser.id);
+    const users = [...data.users];
+    const idx = users.findIndex((u: any) => u.id === newUser.id);
     if (idx >= 0) {
-      if (!newUser.password) newUser.password = data.users[idx].password;
-      data.users[idx] = newUser;
+      if (!newUser.password) newUser.password = users[idx].password;
+      users[idx] = newUser;
     } else {
-      data.users.push(newUser);
+      users.push(newUser);
     }
-    await writeData(data);
+    await writeData({ users });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao salvar usuário' });
@@ -369,8 +361,8 @@ app.post('/api/users', async (req, res) => {
 app.delete('/api/users/:id', async (req, res) => {
   try {
     const data = await readData();
-    data.users = data.users.filter((u: any) => u.id !== req.params.id);
-    await writeData(data);
+    const users = data.users.filter((u: any) => u.id !== req.params.id);
+    await writeData({ users });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao excluir usuário' });
