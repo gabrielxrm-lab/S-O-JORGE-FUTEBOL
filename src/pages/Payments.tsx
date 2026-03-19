@@ -7,6 +7,7 @@ import { Save, CheckCircle2, XCircle, MessageCircle, Wallet, TrendingUp, Trendin
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import toast from 'react-hot-toast';
 
 export function Payments() {
   const { role, canAccess } = useAuth();
@@ -68,14 +69,6 @@ export function Payments() {
       
       const amount = parseFloat(amountStr.replace(',', '.')) || 35;
       
-      setPayments(prev => ({
-        ...prev,
-        [player.id]: {
-          ...(prev[player.id] || {}),
-          [monthKey]: newStatus
-        }
-      }));
-      
       const tx: Transaction = {
         id: uuidv4(),
         date: new Date().toISOString().split('T')[0],
@@ -86,25 +79,24 @@ export function Payments() {
       };
       
       try {
+        const loadingToast = toast.loading('Salvando pagamento...');
         await api.saveSinglePayment(year, player.id, monthKey, newStatus);
         await api.saveTransaction(tx);
+        toast.dismiss(loadingToast);
+        toast.success('Pagamento registrado!');
         loadData();
       } catch (error) {
         console.error(error);
-        alert('Erro ao salvar mensalidade e transação');
+        toast.error('Erro ao salvar pagamento');
       }
     } else {
-      setPayments(prev => ({
-        ...prev,
-        [player.id]: {
-          ...(prev[player.id] || {}),
-          [monthKey]: newStatus
-        }
-      }));
       try {
         await api.saveSinglePayment(year, player.id, monthKey, newStatus);
+        toast.success('Status atualizado');
+        loadData();
       } catch (error) {
         console.error(error);
+        toast.error('Erro ao atualizar status');
       }
     }
   };
@@ -127,7 +119,7 @@ export function Payments() {
 
   const handleSaveTx = async () => {
     if (!newTx.description || !newTx.amount || !newTx.category) {
-      alert('Preencha todos os campos obrigatórios');
+      toast.error('Preencha todos os campos');
       return;
     }
     
@@ -141,13 +133,16 @@ export function Payments() {
     };
 
     try {
+      const loadingToast = toast.loading('Salvando transação...');
       await api.saveTransaction(tx);
+      toast.dismiss(loadingToast);
+      toast.success('Transação salva!');
       setShowTxModal(false);
       setNewTx({ type: 'income', date: new Date().toISOString().split('T')[0] });
       loadData();
     } catch (error) {
       console.error(error);
-      alert('Erro ao salvar transação');
+      toast.error('Erro ao salvar transação');
     }
   };
 
@@ -155,10 +150,11 @@ export function Payments() {
     if (!confirm('Deseja realmente excluir esta transação?')) return;
     try {
       await api.deleteTransaction(id);
+      toast.success('Transação excluída');
       loadData();
     } catch (error) {
       console.error(error);
-      alert('Erro ao excluir transação');
+      toast.error('Erro ao excluir transação');
     }
   };
 
@@ -252,8 +248,8 @@ export function Payments() {
   const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   const years = Array.from({ length: 7 }, (_, i) => (new Date().getFullYear() - 2 + i).toString());
 
-  const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
-  const totalExpense = transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
+  const totalIncome = transactions.reduce((acc, t) => t.type === 'income' ? acc + t.amount : acc, 0);
+  const totalExpense = transactions.reduce((acc, t) => t.type === 'expense' ? acc + t.amount : acc, 0);
   const balance = totalIncome - totalExpense;
 
   if (loading) {

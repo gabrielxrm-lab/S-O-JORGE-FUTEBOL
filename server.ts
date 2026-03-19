@@ -63,7 +63,15 @@ async function findFileId() {
 async function readData() {
   try {
     const localContent = await fs.readFile(LOCAL_DATA_FILE, 'utf-8');
-    return { ...defaultData, ...JSON.parse(localContent) };
+    const parsed = JSON.parse(localContent);
+    return { 
+      players: parsed.players || [],
+      monthly_payments: parsed.monthly_payments || {},
+      game_stats: parsed.game_stats || [],
+      transactions: parsed.transactions || [],
+      users: parsed.users || [],
+      matches: parsed.matches || []
+    };
   } catch (err) {
     if (GOOGLE_SERVICE_ACCOUNT_EMAIL && GOOGLE_PRIVATE_KEY) {
       try {
@@ -296,7 +304,7 @@ app.post('/api/transactions', async (req, res) => {
   try {
     const data = await readData();
     const newTx = req.body;
-    const transactions = [...data.transactions];
+    const transactions = data.transactions ? [...data.transactions] : [];
     const idx = transactions.findIndex((t: any) => t.id === newTx.id);
     if (idx >= 0) transactions[idx] = newTx;
     else transactions.push(newTx);
@@ -310,7 +318,7 @@ app.post('/api/transactions', async (req, res) => {
 app.delete('/api/transactions/:id', async (req, res) => {
   try {
     const data = await readData();
-    const transactions = data.transactions.filter((t: any) => t.id !== req.params.id);
+    const transactions = data.transactions ? data.transactions.filter((t: any) => t.id !== req.params.id) : [];
     await writeData({ transactions });
     res.json({ success: true });
   } catch (error) {
