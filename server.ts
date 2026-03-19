@@ -52,12 +52,16 @@ async function logActivity(message: string) {
 
 async function findFileId() {
   if (!GOOGLE_DRIVE_FOLDER_ID) return null;
-  const res = await drive.files.list({
-    q: `name='data.json' and '${GOOGLE_DRIVE_FOLDER_ID}' in parents and trashed=false`,
-    fields: 'files(id)',
-    spaces: 'drive',
-  });
-  return res.data.files?.[0]?.id;
+  try {
+    const res = await drive.files.list({
+      q: `name='data.json' and '${GOOGLE_DRIVE_FOLDER_ID}' in parents and trashed=false`,
+      fields: 'files(id)',
+      spaces: 'drive',
+    });
+    return res.data.files?.[0]?.id;
+  } catch (e) {
+    return null;
+  }
 }
 
 async function readData() {
@@ -91,13 +95,15 @@ async function readData() {
 }
 
 async function rotateBackups() {
-  const files = await fs.readdir(BACKUP_DIR);
-  const backups = files.filter(f => f.startsWith('data_')).sort();
-  if (backups.length >= 10) {
-    for (let i = 0; i <= backups.length - 10; i++) {
-      await fs.unlink(path.join(BACKUP_DIR, backups[i]));
+  try {
+    const files = await fs.readdir(BACKUP_DIR);
+    const backups = files.filter(f => f.startsWith('data_')).sort();
+    if (backups.length >= 15) { // Aumentado para 15 backups
+      for (let i = 0; i <= backups.length - 15; i++) {
+        await fs.unlink(path.join(BACKUP_DIR, backups[i]));
+      }
     }
-  }
+  } catch (e) {}
 }
 
 async function writeData(newData: any) {
@@ -108,10 +114,12 @@ async function writeData(newData: any) {
       const updatedData = { ...currentData, ...newData };
 
       // --- TRAVA DE SEGURANÇA (ANTI-WIPE) ---
+      // Impede que dados críticos sejam zerados se já existiam
       if (currentData.players.length > 0 && updatedData.players.length === 0) {
-        const errorMsg = 'BLOQUEIO: Tentativa de salvar lista de jogadores vazia detectada.';
-        await logActivity(errorMsg);
-        throw new Error(errorMsg);
+        throw new Error('BLOQUEIO: Tentativa de salvar lista de jogadores vazia.');
+      }
+      if (currentData.users.length > 0 && updatedData.users.length === 0) {
+        throw new Error('BLOQUEIO: Tentativa de salvar lista de usuários vazia.');
       }
 
       const jsonString = JSON.stringify(updatedData, null, 2);
@@ -121,16 +129,16 @@ async function writeData(newData: any) {
       await fs.writeFile(path.join(BACKUP_DIR, `data_${timestamp}.json`), jsonString);
       await rotateBackups();
 
-      // 2. Gravação Atômica Local
+      // 2. Gravação Atômica Local (Temp -> Rename)
       const tempFile = `${LOCAL_DATA_FILE}.tmp`;
       await fs.writeFile(tempFile, jsonString);
       await fs.rename(tempFile, LOCAL_DATA_FILE);
 
       await logActivity(`Sucesso: Dados atualizados (${Object.keys(newData).join(', ')})`);
 
-      // 3. Sincroniza com Google Drive
+      // 3. Sincroniza com Google Drive (Assíncrono)
       if (GOOGLE_SERVICE_ACCOUNT_EMAIL && GOOGLE_PRIVATE_KEY) {
-        performDriveWrite(updatedData).catch(err => console.error('[Drive] Erro:', err));
+        performDriveWrite(updatedData).catch(err => console.error('[Drive] Erro na sincronização:', err));
       }
       
       return updatedData;

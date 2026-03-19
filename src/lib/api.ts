@@ -61,7 +61,7 @@ export interface AppData {
 export const api = {
   async getData(): Promise<AppData> {
     const res = await fetch('/api/data');
-    if (!res.ok) throw new Error('Failed to fetch data');
+    if (!res.ok) throw new Error('Falha ao carregar dados do servidor');
     return res.json();
   },
 
@@ -71,36 +71,24 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Failed to restore data');
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Falha ao restaurar backup');
+    }
   },
 
   async savePlayer(player: Player): Promise<void> {
-    try {
-      const res = await fetch('/api/players', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(player),
-      });
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error('API Error Response:', res.status, errorText);
-        let errorData = {};
-        try {
-          errorData = JSON.parse(errorText);
-        } catch (e) {
-          // Not JSON
-        }
-        throw new Error((errorData as any).error || `Failed to save player: ${res.status} ${res.statusText}`);
-      }
-    } catch (error) {
-      console.error('Network or parsing error in savePlayer:', error);
-      throw error;
-    }
+    const res = await fetch('/api/players', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(player),
+    });
+    if (!res.ok) throw new Error('Erro ao salvar jogador');
   },
 
   async deletePlayer(id: string): Promise<void> {
     const res = await fetch(`/api/players/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Failed to delete player');
+    if (!res.ok) throw new Error('Erro ao excluir jogador');
   },
 
   async savePayments(year: string, payments: Record<string, Record<string, string>>): Promise<void> {
@@ -109,7 +97,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ year, payments }),
     });
-    if (!res.ok) throw new Error('Failed to save payments');
+    if (!res.ok) throw new Error('Erro ao salvar pagamentos');
   },
 
   async saveSinglePayment(year: string, playerId: string, month: string, status: string): Promise<any> {
@@ -118,7 +106,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ year, playerId, month, status }),
     });
-    if (!res.ok) throw new Error('Failed to save single payment');
+    if (!res.ok) throw new Error('Erro ao atualizar pagamento');
     return res.json();
   },
 
@@ -128,7 +116,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(stats),
     });
-    if (!res.ok) throw new Error('Failed to save stats');
+    if (!res.ok) throw new Error('Erro ao salvar estatísticas');
   },
 
   async saveMatch(match: Match): Promise<void> {
@@ -137,17 +125,17 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(match),
     });
-    if (!res.ok) throw new Error('Failed to save match');
+    if (!res.ok) throw new Error('Erro ao salvar partida');
   },
 
   async deleteMatch(id: string): Promise<void> {
     const res = await fetch(`/api/matches/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Failed to delete match');
+    if (!res.ok) throw new Error('Erro ao excluir partida');
   },
 
   async clearStats(): Promise<void> {
     const res = await fetch('/api/stats', { method: 'DELETE' });
-    if (!res.ok) throw new Error('Failed to clear stats');
+    if (!res.ok) throw new Error('Erro ao limpar ranking');
   },
 
   async updatePlayerStats(stats: any): Promise<void> {
@@ -156,7 +144,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(stats),
     });
-    if (!res.ok) throw new Error('Failed to update stats');
+    if (!res.ok) throw new Error('Erro ao atualizar estatísticas');
   },
 
   async saveTransaction(transaction: Transaction): Promise<void> {
@@ -165,12 +153,12 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(transaction),
     });
-    if (!res.ok) throw new Error('Failed to save transaction');
+    if (!res.ok) throw new Error('Erro ao salvar transação');
   },
 
   async deleteTransaction(id: string): Promise<void> {
     const res = await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Failed to delete transaction');
+    if (!res.ok) throw new Error('Erro ao excluir transação');
   },
 
   async saveUser(user: User): Promise<void> {
@@ -179,11 +167,11 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(user),
     });
-    if (!res.ok) throw new Error('Failed to save user');
+    if (!res.ok) throw new Error('Erro ao salvar usuário');
   },
 
   async deleteUser(id: string): Promise<void> {
     const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Failed to delete user');
+    if (!res.ok) throw new Error('Erro ao excluir usuário');
   }
 };
