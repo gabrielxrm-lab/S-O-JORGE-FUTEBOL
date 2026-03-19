@@ -218,7 +218,24 @@
     }
   },
   "game_stats": [],
-  "transactions": [],
+  "transactions": [
+    {
+      "id": "bb3e6045-a76e-46e1-aad1-6372f3e6fa6b",
+      "date": "2026-03-19",
+      "description": "UNIFORME",
+      "type": "expense",
+      "category": "Lavagem",
+      "amount": 170
+    },
+    {
+      "id": "b0664284-23dd-49f4-8070-faa650d9d120",
+      "date": "2026-03-19",
+      "description": "lavagem",
+      "type": "expense",
+      "category": "Lavagem",
+      "amount": 170
+    }
+  ],
   "users": [
     {
       "id": "2f3d9ba9-3918-4cf0-9167-66574125b945",
