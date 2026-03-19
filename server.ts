@@ -3,6 +3,7 @@ import path from 'path';
 import { Buffer } from 'buffer';
 import bcrypt from 'bcryptjs';
 import fs from 'fs/promises';
+import { google } from 'googleapis';
 
 const app = express();
 const PORT = 3000;
@@ -10,12 +11,19 @@ const PORT = 3000;
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
-const getGitHubConfig = () => ({
-  token: process.env.GITHUB_TOKEN || '', 
-  repo: process.env.GITHUB_REPO || 'gabrielxrm-lab/S-O-JORGE-FUTEBOL',
-  branch: process.env.GITHUB_BRANCH || 'main',
-  filePath: 'data.json'
-});
+// Configurações do Google Drive
+const GOOGLE_DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || '';
+const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || '';
+const GOOGLE_PRIVATE_KEY = (process.env.GOOGLE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+
+const auth = new google.auth.JWT(
+  GOOGLE_SERVICE_ACCOUNT_EMAIL,
+  undefined,
+  GOOGLE_PRIVATE_KEY,
+  ['https://www.googleapis.com/auth/drive']
+);
+
+const drive = google.drive({ version: 'v3', auth });
 
 const defaultData = { 
   players: [], 
@@ -27,123 +35,121 @@ const defaultData = {
 };
 
 const LOCAL_DATA_FILE = path.join(process.cwd(), 'data.json');
-const BACKUP_FILE = path.join(process.cwd(), 'data.json.bak');
+const BACKUP_DIR = path.join(process.cwd(), 'backups');
+const LOG_FILE = path.join(process.cwd(), 'activity.log');
 
-// Fila de gravação para garantir que uma operação termine antes da outra começar
 let writeQueue = Promise.resolve();
+
+// Garante que as pastas necessárias existam
+async function ensureDirectories() {
+  try { await fs.mkdir(BACKUP_DIR, { recursive: true }); } catch (e) {}
+}
+
+async function logActivity(message: string) {
+  const entry = `[${new Date().toLocaleString('pt-BR')}] ${message}\n`;
+  try { await fs.appendFile(LOG_FILE, entry); } catch (e) {}
+}
+
+async function findFileId() {
+  if (!GOOGLE_DRIVE_FOLDER_ID) return null;
+  const res = await drive.files.list({
+    q: `name='data.json' and '${GOOGLE_DRIVE_FOLDER_ID}' in parents and trashed=false`,
+    fields: 'files(id)',
+    spaces: 'drive',
+  });
+  return res.data.files?.[0]?.id;
+}
 
 async function readData() {
   try {
     const localContent = await fs.readFile(LOCAL_DATA_FILE, 'utf-8');
-    const data = JSON.parse(localContent);
-    // Garante que todas as chaves existam
-    return { ...defaultData, ...data };
+    return { ...defaultData, ...JSON.parse(localContent) };
   } catch (err) {
-    console.log('[Storage] Arquivo local não encontrado, tentando GitHub...');
-    const { token, repo, branch, filePath } = getGitHubConfig();
-    if (token) {
+    if (GOOGLE_SERVICE_ACCOUNT_EMAIL && GOOGLE_PRIVATE_KEY) {
       try {
-        const url = `https://api.github.com/repos/${repo}/contents/${filePath}?ref=${branch}&t=${Date.now()}`;
-        const res = await fetch(url, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github.v3+json'
-          }
-        });
-
-        if (res.ok) {
-          const fileData = await res.json();
-          const content = Buffer.from(fileData.content, 'base64').toString('utf-8');
-          const dataFromGH = JSON.parse(content);
-          const finalData = { ...defaultData, ...dataFromGH };
-          await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(finalData, null, 2));
-          return finalData;
+        const fileId = await findFileId();
+        if (fileId) {
+          const res = await drive.files.get({ fileId, alt: 'media' });
+          const data = res.data as any;
+          await fs.writeFile(LOCAL_DATA_FILE, JSON.stringify(data, null, 2));
+          return { ...defaultData, ...data };
         }
       } catch (error) {
-        console.error('[GitHub] Erro ao ler dados:', error);
+        console.error('[Drive] Erro na leitura:', error);
       }
     }
     return { ...defaultData };
   }
 }
 
+async function rotateBackups() {
+  const files = await fs.readdir(BACKUP_DIR);
+  const backups = files.filter(f => f.startsWith('data_')).sort();
+  if (backups.length >= 10) {
+    for (let i = 0; i <= backups.length - 10; i++) {
+      await fs.unlink(path.join(BACKUP_DIR, backups[i]));
+    }
+  }
+}
+
 async function writeData(newData: any) {
   return writeQueue = writeQueue.then(async () => {
+    await ensureDirectories();
     try {
-      // 1. Lê a versão mais atual do disco
       const currentData = await readData();
-      
-      // 2. Mescla os dados novos
       const updatedData = { ...currentData, ...newData };
 
-      // 3. VALIDAÇÃO CRÍTICA: Verifica se as chaves essenciais ainda existem
-      const essentialKeys = ['players', 'monthly_payments', 'game_stats', 'transactions', 'users', 'matches'];
-      for (const key of essentialKeys) {
-        if (!updatedData[key]) {
-          throw new Error(`Falha de integridade: Chave '${key}' ausente nos dados de salvamento.`);
-        }
+      // --- TRAVA DE SEGURANÇA (ANTI-WIPE) ---
+      if (currentData.players.length > 0 && updatedData.players.length === 0) {
+        const errorMsg = 'BLOQUEIO: Tentativa de salvar lista de jogadores vazia detectada.';
+        await logActivity(errorMsg);
+        throw new Error(errorMsg);
       }
 
       const jsonString = JSON.stringify(updatedData, null, 2);
+      
+      // 1. Cria Backup com Timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      await fs.writeFile(path.join(BACKUP_DIR, `data_${timestamp}.json`), jsonString);
+      await rotateBackups();
 
-      // 4. BACKUP: Cria uma cópia do arquivo atual antes de mexer nele
-      try {
-        const currentRaw = await fs.readFile(LOCAL_DATA_FILE, 'utf-8');
-        await fs.writeFile(BACKUP_FILE, currentRaw);
-      } catch (e) {
-        // Se o arquivo não existir ainda, ignora o backup
-      }
-
-      // 5. GRAVAÇÃO ATÔMICA: Escreve num arquivo temporário e depois renomeia
+      // 2. Gravação Atômica Local
       const tempFile = `${LOCAL_DATA_FILE}.tmp`;
       await fs.writeFile(tempFile, jsonString);
       await fs.rename(tempFile, LOCAL_DATA_FILE);
 
-      console.log('[Storage] Dados salvos com sucesso e backup criado.');
+      await logActivity(`Sucesso: Dados atualizados (${Object.keys(newData).join(', ')})`);
 
-      // 6. Sincroniza com GitHub em background
-      const { token, repo, branch, filePath } = getGitHubConfig();
-      if (token) {
-        performGitHubWrite(updatedData, token, repo, branch, filePath).catch(err => {
-          console.error('[GitHub] Erro na sincronização:', err.message);
-        });
+      // 3. Sincroniza com Google Drive
+      if (GOOGLE_SERVICE_ACCOUNT_EMAIL && GOOGLE_PRIVATE_KEY) {
+        performDriveWrite(updatedData).catch(err => console.error('[Drive] Erro:', err));
       }
       
       return updatedData;
     } catch (err) {
-      console.error('[Storage] ERRO AO SALVAR DADOS:', err);
+      const errorMsg = `ERRO CRÍTICO: ${err instanceof Error ? err.message : String(err)}`;
+      await logActivity(errorMsg);
+      console.error('[Storage]', errorMsg);
       throw err;
     }
   });
 }
 
-async function performGitHubWrite(data: any, token: string, repo: string, branch: string, filePath: string) {
-  const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
-  const getRes = await fetch(`${url}?ref=${branch}`, {
-    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' }
-  });
+async function performDriveWrite(data: any) {
+  const fileId = await findFileId();
+  const media = {
+    mimeType: 'application/json',
+    body: JSON.stringify(data, null, 2),
+  };
 
-  let sha = '';
-  if (getRes.ok) {
-    const fileData = await getRes.json();
-    sha = fileData.sha;
+  if (fileId) {
+    await drive.files.update({ fileId, media });
+  } else if (GOOGLE_DRIVE_FOLDER_ID) {
+    await drive.files.create({
+      requestBody: { name: 'data.json', parents: [GOOGLE_DRIVE_FOLDER_ID] },
+      media,
+    });
   }
-
-  const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
-  await fetch(url, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      message: 'Update data.json [Atomic Sync]',
-      content: content,
-      sha: sha || undefined,
-      branch: branch
-    })
-  });
 }
 
 // --- Rotas da API ---
@@ -166,11 +172,10 @@ app.get('/api/data', async (req, res) => {
 
 app.post('/api/data/restore', async (req, res) => {
   try {
-    const newData = req.body;
-    await writeData(newData);
+    await writeData(req.body);
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao restaurar dados' });
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Erro ao restaurar' });
   }
 });
 
