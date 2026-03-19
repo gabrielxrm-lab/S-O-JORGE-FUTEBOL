@@ -2,9 +2,15 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api, GameStat, Match } from '../lib/api';
 import { motion } from 'motion/react';
-import { Save, Trash2, Download } from 'lucide-react';
+import { Save, Trash2 } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { v4 as uuidv4 } from 'uuid';
+
+// Componentes Modulares
+import { MatchInfoFields } from '../components/summary/MatchInfoFields';
+import { ListEditor } from '../components/summary/ListEditor';
+import { TeamSection } from '../components/summary/TeamSection';
+import { SummaryPreview } from '../components/summary/SummaryPreview';
 
 export function MatchSummary() {
   const { role, canAccess } = useAuth();
@@ -34,14 +40,6 @@ export function MatchSummary() {
   const [faltasSim, setFaltasSim] = useState<string[]>([]);
   const [medico, setMedico] = useState<string[]>([]);
   const [cartoesMes, setCartoesMes] = useState<string[]>([]);
-
-  const handleAddList = (setter: React.Dispatch<React.SetStateAction<string[]>>, val: string) => {
-    if (val) setter(prev => [...prev, val]);
-  };
-
-  const handleRemoveList = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) => {
-    setter(prev => prev.filter((_, i) => i !== index));
-  };
 
   const clearAll = () => {
     if (!window.confirm('Tem certeza que deseja limpar todos os campos?')) return;
@@ -193,44 +191,6 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
     return <LoadingSpinner fullScreen />;
   }
 
-  const ListEditor = ({ title, items, setter, placeholder }: any) => {
-    const [val, setVal] = useState('');
-    return (
-      <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-xl">
-        <h3 className="font-black mb-5 tracking-tight text-lg">{title}</h3>
-        <div className="flex gap-3 mb-5">
-          <input 
-            type="text" 
-            placeholder={placeholder}
-            value={val}
-            onChange={e => setVal(e.target.value.toUpperCase())}
-            disabled={!hasAccess}
-            className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-indigo-500 transition-colors"
-          />
-          <button 
-            onClick={() => { handleAddList(setter, val); setVal(''); }}
-            disabled={!hasAccess || !val}
-            className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all"
-          >
-            Add
-          </button>
-        </div>
-        <ul className="space-y-3">
-          {items.map((item: string, i: number) => (
-            <li key={i} className="flex justify-between items-center text-sm font-bold bg-black/30 p-3 rounded-xl border border-white/5">
-              <span>{item}</span>
-              {hasAccess && (
-                <button onClick={() => handleRemoveList(setter, i)} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors">
-                  <Trash2 size={18} />
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
-
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -254,224 +214,57 @@ ${cartoesMes.join('\n') || '(Nenhum)'}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-xl">
-          <label className="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-3">Data</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} disabled={!hasAccess} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 font-bold focus:outline-none focus:border-indigo-500 transition-colors" />
-        </div>
-        <div className="bg-[#111] border border-white/5 rounded-2xl p-6 shadow-xl">
-          <label className="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-3">Rodada</label>
-          <input type="text" value={round} onChange={e => setRound(e.target.value)} disabled={!hasAccess} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 font-bold focus:outline-none focus:border-indigo-500 transition-colors" />
-        </div>
-      </div>
+      <MatchInfoFields 
+        date={date} setDate={setDate} 
+        round={round} setRound={setRound} 
+        hasAccess={hasAccess} 
+      />
 
       <h2 className="text-3xl font-black mt-12 tracking-tight">🏆 Destaques Individuais</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <ListEditor title="⭐ Craque(s) do Jogo" items={craques} setter={setCraques} placeholder="Nome do craque" />
-        <ListEditor title="🧤 Goleiro(s) do Jogo" items={goleiros} setter={setGoleiros} placeholder="Nome do goleiro" />
-        <ListEditor title="⚽ Gol(s) do Jogo" items={golsJogo} setter={setGolsJogo} placeholder="Nome do autor" />
+        <ListEditor title="⭐ Craque(s) do Jogo" items={craques} setter={setCraques} placeholder="Nome do craque" hasAccess={hasAccess} />
+        <ListEditor title="🧤 Goleiro(s) do Jogo" items={goleiros} setter={setGoleiros} placeholder="Nome do goleiro" hasAccess={hasAccess} />
+        <ListEditor title="⚽ Gol(s) do Jogo" items={golsJogo} setter={setGolsJogo} placeholder="Nome do autor" hasAccess={hasAccess} />
       </div>
 
       <h2 className="text-3xl font-black mt-12 tracking-tight">📝 Detalhes dos Times</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Time da Casa */}
-        <div className="bg-[#111] border border-white/5 rounded-3xl p-6 md:p-8 space-y-8 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
-          <div className="flex justify-between items-center relative z-10">
-            <div className="flex items-center gap-4 w-2/3">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg" alt="Milan" className="w-12 h-12 object-contain drop-shadow-lg" />
-              <input type="text" value={homeName} onChange={e => setHomeName(e.target.value.toUpperCase())} disabled={!hasAccess} className="bg-transparent text-3xl font-black text-red-500 focus:outline-none w-full tracking-tight" />
-            </div>
-            <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-red-400 to-red-600">{homeGoals.reduce((s, g) => s + g.qty, 0)}</div>
-          </div>
-          
-          <div className="space-y-5 relative z-10">
-            <h4 className="font-black text-lg border-b border-white/5 pb-3 tracking-tight">Gols</h4>
-            {hasAccess && (
-              <form onSubmit={e => {
-                e.preventDefault();
-                const fd = new FormData(e.currentTarget);
-                const name = fd.get('name') as string;
-                const shirt = parseInt(fd.get('shirt') as string);
-                const qty = parseInt(fd.get('qty') as string);
-                if (name && shirt) {
-                  setHomeGoals(prev => {
-                    const existing = prev.find(g => g.name === name && g.shirt === shirt);
-                    if (existing) return prev.map(g => g === existing ? {...g, qty: g.qty + qty} : g);
-                    return [...prev, {name: name.toUpperCase(), shirt, qty}];
-                  });
-                  (e.target as HTMLFormElement).reset();
-                }
-              }} className="flex gap-3">
-                <input name="name" placeholder="Nome" required className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-red-500 transition-colors" />
-                <input name="shirt" type="number" placeholder="Nº" required className="w-20 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-red-500 transition-colors" />
-                <input name="qty" type="number" defaultValue={1} min={1} required className="w-20 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-red-500 transition-colors" />
-                <button type="submit" className="bg-red-600 hover:bg-red-500 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg shadow-red-500/20 transition-all">Add</button>
-              </form>
-            )}
-            <ul className="space-y-3">
-              {homeGoals.map((g, i) => (
-                <li key={i} className="flex justify-between items-center text-sm font-bold bg-black/30 p-3 rounded-xl border border-white/5">
-                  <span>⚽ {g.name} ({g.shirt}) - <span className="text-red-400">{g.qty} gol(s)</span></span>
-                  {hasAccess && <button onClick={() => setHomeGoals(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="space-y-5 relative z-10">
-            <h4 className="font-black text-lg border-b border-white/5 pb-3 tracking-tight">Cartões</h4>
-            {hasAccess && (
-              <form onSubmit={e => {
-                e.preventDefault();
-                const fd = new FormData(e.currentTarget);
-                const name = (fd.get('name') as string).toUpperCase();
-                const type = fd.get('type') as string;
-                if (name) {
-                  if (type === 'Y') setHomeYellow(prev => [...prev, name]);
-                  else setHomeRed(prev => [...prev, name]);
-                  (e.target as HTMLFormElement).reset();
-                }
-              }} className="flex gap-3">
-                <input name="name" placeholder="Nome" required className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-red-500 transition-colors" />
-                <select name="type" className="bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-red-500 transition-colors">
-                  <option value="Y">🟨 Amarelo</option>
-                  <option value="R">🟥 Vermelho</option>
-                </select>
-                <button type="submit" className="bg-red-600 hover:bg-red-500 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg shadow-red-500/20 transition-all">Add</button>
-              </form>
-            )}
-            <ul className="space-y-3">
-              {homeYellow.map((n, i) => (
-                <li key={`y-${i}`} className="flex justify-between items-center text-sm font-bold bg-black/30 p-3 rounded-xl border border-white/5">
-                  <span>🟨 {n}</span>
-                  {hasAccess && <button onClick={() => setHomeYellow(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
-                </li>
-              ))}
-              {homeRed.map((n, i) => (
-                <li key={`r-${i}`} className="flex justify-between items-center text-sm font-bold bg-black/30 p-3 rounded-xl border border-white/5">
-                  <span>🟥 {n}</span>
-                  {hasAccess && <button onClick={() => setHomeRed(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* Time Visitante */}
-        <div className="bg-[#111] border border-white/5 rounded-3xl p-6 md:p-8 space-y-8 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
-          <div className="flex justify-between items-center relative z-10">
-            <div className="flex items-center gap-4 w-2/3">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg" alt="Inter" className="w-12 h-12 object-contain drop-shadow-lg" />
-              <input type="text" value={awayName} onChange={e => setAwayName(e.target.value.toUpperCase())} disabled={!hasAccess} className="bg-transparent text-3xl font-black text-blue-500 focus:outline-none w-full tracking-tight" />
-            </div>
-            <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-400 to-blue-600">{awayGoals.reduce((s, g) => s + g.qty, 0)}</div>
-          </div>
-          
-          <div className="space-y-5 relative z-10">
-            <h4 className="font-black text-lg border-b border-white/5 pb-3 tracking-tight">Gols</h4>
-            {hasAccess && (
-              <form onSubmit={e => {
-                e.preventDefault();
-                const fd = new FormData(e.currentTarget);
-                const name = fd.get('name') as string;
-                const shirt = parseInt(fd.get('shirt') as string);
-                const qty = parseInt(fd.get('qty') as string);
-                if (name && shirt) {
-                  setAwayGoals(prev => {
-                    const existing = prev.find(g => g.name === name && g.shirt === shirt);
-                    if (existing) return prev.map(g => g === existing ? {...g, qty: g.qty + qty} : g);
-                    return [...prev, {name: name.toUpperCase(), shirt, qty}];
-                  });
-                  (e.target as HTMLFormElement).reset();
-                }
-              }} className="flex gap-3">
-                <input name="name" placeholder="Nome" required className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-500 transition-colors" />
-                <input name="shirt" type="number" placeholder="Nº" required className="w-20 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-500 transition-colors" />
-                <input name="qty" type="number" defaultValue={1} min={1} required className="w-20 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-500 transition-colors" />
-                <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">Add</button>
-              </form>
-            )}
-            <ul className="space-y-3">
-              {awayGoals.map((g, i) => (
-                <li key={i} className="flex justify-between items-center text-sm font-bold bg-black/30 p-3 rounded-xl border border-white/5">
-                  <span>⚽ {g.name} ({g.shirt}) - <span className="text-blue-400">{g.qty} gol(s)</span></span>
-                  {hasAccess && <button onClick={() => setAwayGoals(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="space-y-5 relative z-10">
-            <h4 className="font-black text-lg border-b border-white/5 pb-3 tracking-tight">Cartões</h4>
-            {hasAccess && (
-              <form onSubmit={e => {
-                e.preventDefault();
-                const fd = new FormData(e.currentTarget);
-                const name = (fd.get('name') as string).toUpperCase();
-                const type = fd.get('type') as string;
-                if (name) {
-                  if (type === 'Y') setAwayYellow(prev => [...prev, name]);
-                  else setAwayRed(prev => [...prev, name]);
-                  (e.target as HTMLFormElement).reset();
-                }
-              }} className="flex gap-3">
-                <input name="name" placeholder="Nome" required className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-500 transition-colors" />
-                <select name="type" className="bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-blue-500 transition-colors">
-                  <option value="Y">🟨 Amarelo</option>
-                  <option value="R">🟥 Vermelho</option>
-                </select>
-                <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">Add</button>
-              </form>
-            )}
-            <ul className="space-y-3">
-              {awayYellow.map((n, i) => (
-                <li key={`y-${i}`} className="flex justify-between items-center text-sm font-bold bg-black/30 p-3 rounded-xl border border-white/5">
-                  <span>🟨 {n}</span>
-                  {hasAccess && <button onClick={() => setAwayYellow(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
-                </li>
-              ))}
-              {awayRed.map((n, i) => (
-                <li key={`r-${i}`} className="flex justify-between items-center text-sm font-bold bg-black/30 p-3 rounded-xl border border-white/5">
-                  <span>🟥 {n}</span>
-                  {hasAccess && <button onClick={() => setAwayRed(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500 hover:text-red-400 p-1 hover:bg-red-500/10 rounded-lg transition-colors"><Trash2 size={18} /></button>}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        <TeamSection 
+          teamName={homeName} setTeamName={setHomeName}
+          logoUrl="https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg"
+          colorClass="text-red-500" accentColor="red"
+          goals={homeGoals} setGoals={setHomeGoals}
+          yellowCards={homeYellow} setYellowCards={setHomeYellow}
+          redCards={homeRed} setRedCards={setHomeRed}
+          hasAccess={hasAccess}
+        />
+        <TeamSection 
+          teamName={awayName} setTeamName={setAwayName}
+          logoUrl="https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg"
+          colorClass="text-blue-500" accentColor="blue"
+          goals={awayGoals} setGoals={setAwayGoals}
+          yellowCards={awayYellow} setYellowCards={setAwayYellow}
+          redCards={awayRed} setRedCards={setAwayRed}
+          hasAccess={hasAccess}
+        />
       </div>
 
       <h2 className="text-3xl font-black mt-12 tracking-tight">📌 Ocorrências Gerais</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <ListEditor title="🚫 Suspensos" items={suspensos} setter={setSuspensos} placeholder="Nome do jogador" />
-        <ListEditor title="📌 Faltas não justificadas" items={faltasNao} setter={setFaltasNao} placeholder="Nome do jogador" />
-        <ListEditor title="📆 Cumpriu Suspensão" items={cumpriu} setter={setCumpriu} placeholder="Nome do jogador" />
-        <ListEditor title="✅ Faltas justificadas" items={faltasSim} setter={setFaltasSim} placeholder="Nome (motivo)" />
-        <ListEditor title="🚑 Departamento Médico" items={medico} setter={setMedico} placeholder="Nome (lesão)" />
-        <ListEditor title="🟨 Cartões (Mês)" items={cartoesMes} setter={setCartoesMes} placeholder="Nome (2 amarelos)" />
+        <ListEditor title="🚫 Suspensos" items={suspensos} setter={setSuspensos} placeholder="Nome do jogador" hasAccess={hasAccess} />
+        <ListEditor title="📌 Faltas não justificadas" items={faltasNao} setter={setFaltasNao} placeholder="Nome do jogador" hasAccess={hasAccess} />
+        <ListEditor title="📆 Cumpriu Suspensão" items={cumpriu} setter={setCumpriu} placeholder="Nome do jogador" hasAccess={hasAccess} />
+        <ListEditor title="✅ Faltas justificadas" items={faltasSim} setter={setFaltasSim} placeholder="Nome (motivo)" hasAccess={hasAccess} />
+        <ListEditor title="🚑 Departamento Médico" items={medico} setter={setMedico} placeholder="Nome (lesão)" hasAccess={hasAccess} />
+        <ListEditor title="🟨 Cartões (Mês)" items={cartoesMes} setter={setCartoesMes} placeholder="Nome (2 amarelos)" hasAccess={hasAccess} />
       </div>
 
-      <div className="bg-[#111] border border-white/5 rounded-3xl p-6 md:p-8 space-y-8 shadow-2xl">
-        <h2 className="text-3xl font-black tracking-tight">📄 Prévia e Finalização</h2>
-        <pre className="bg-black/50 border border-white/10 p-6 rounded-2xl overflow-x-auto text-sm font-mono text-zinc-300 whitespace-pre-wrap shadow-inner">
-          {generateText()}
-        </pre>
-
-        <div className="flex flex-col sm:flex-row gap-5">
-          <button onClick={downloadTxt} className="w-full sm:flex-1 flex justify-center items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white px-8 py-4 rounded-2xl transition-all font-bold shadow-lg">
-            <Download size={22} />
-            Baixar Súmula (TXT)
-          </button>
-          {hasAccess && (
-            <button onClick={saveStats} className="w-full sm:flex-1 flex justify-center items-center gap-3 bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-2xl transition-all font-bold shadow-lg shadow-emerald-500/20">
-              <Save size={22} />
-              Salvar no Ranking e Limpar
-            </button>
-          )}
-        </div>
-      </div>
+      <SummaryPreview 
+        text={generateText()} 
+        onDownload={downloadTxt} 
+        onSave={saveStats} 
+        hasAccess={hasAccess} 
+      />
     </motion.div>
   );
 }
