@@ -3,11 +3,18 @@ import { useAuth } from '../context/AuthContext';
 import { api, AppData, Transaction, Player } from '../lib/api';
 import { motion } from 'motion/react';
 import { v4 as uuidv4 } from 'uuid';
-import { Save, CheckCircle2, XCircle, MessageCircle, Wallet, TrendingUp, TrendingDown, Plus, Trash2, FileText } from 'lucide-react';
+import { MessageCircle, Plus, FileText } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import toast from 'react-hot-toast';
+
+// Componentes Modulares
+import { FinancialSummary } from '../components/payments/FinancialSummary';
+import { TransactionModal } from '../components/payments/TransactionModal';
+import { ReportModal } from '../components/payments/ReportModal';
+import { PaymentTable } from '../components/payments/PaymentTable';
+import { CashFlow } from '../components/payments/CashFlow';
 
 export function Payments() {
   const { role, canAccess } = useAuth();
@@ -118,7 +125,6 @@ export function Payments() {
   };
 
   const handleSaveTx = async () => {
-    // Converte vírgula para ponto antes de validar
     const amountValue = typeof newTx.amount === 'string' 
       ? parseFloat(newTx.amount.replace(',', '.')) 
       : newTx.amount;
@@ -253,15 +259,9 @@ export function Payments() {
   const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   const years = Array.from({ length: 7 }, (_, i) => (new Date().getFullYear() - 2 + i).toString());
 
-  // Cálculos robustos garantindo que valores nulos ou strings não quebrem a soma
   const totalIncome = transactions.reduce((acc, t) => t.type === 'income' ? acc + (Number(t.amount) || 0) : acc, 0);
   const totalExpense = transactions.reduce((acc, t) => t.type === 'expense' ? acc + (Number(t.amount) || 0) : acc, 0);
   const balance = totalIncome - totalExpense;
-
-  const formatCurrency = (value: any) => {
-    const num = Number(value) || 0;
-    return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
 
   if (loading) {
     return <LoadingSpinner fullScreen />;
@@ -336,96 +336,23 @@ export function Payments() {
             </div>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-zinc-950 text-zinc-400 uppercase tracking-wider text-xs">
-                  <tr>
-                    <th className="px-6 py-4 font-medium sticky left-0 bg-zinc-950 z-10">Jogador</th>
-                    {months.map(m => (
-                      <th key={m} className="px-4 py-4 font-medium text-center">{m}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800">
-                  {playersForPayments.length === 0 ? (
-                    <tr>
-                      <td colSpan={13} className="px-6 py-8 text-center text-zinc-500">
-                        Nenhum jogador cadastrado.
-                      </td>
-                    </tr>
-                  ) : (
-                    playersForPayments.map(player => (
-                      <tr key={player.id} className="hover:bg-zinc-800/50 transition-colors">
-                        <td className="px-6 py-4 font-medium text-white sticky left-0 bg-zinc-900 z-10 border-r border-zinc-800">
-                          {player.name}
-                        </td>
-                        {months.map((m, i) => {
-                          const monthKey = (i + 1).toString();
-                          const status = payments[player.id]?.[monthKey] || 'Atrasada';
-                          const isPaid = status === 'Paga';
-                          
-                          return (
-                            <td key={m} className="px-2 py-4 text-center">
-                              <div className="flex items-center justify-center gap-1">
-                                <button
-                                  onClick={() => handleToggle(player, monthKey, m)}
-                                  className={`p-1.5 rounded-full transition-colors ${
-                                    isPaid ? 'text-emerald-400 hover:bg-emerald-400/10' : 'text-zinc-600 hover:bg-zinc-800'
-                                  }`}
-                                >
-                                  {isPaid ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
-                                </button>
-                                {!isPaid && (
-                                  <button
-                                    onClick={() => handleCobrar(player, m)}
-                                    className="p-1.5 text-emerald-500 hover:bg-emerald-500/10 rounded-full transition-colors"
-                                    title="Cobrar via WhatsApp"
-                                  >
-                                    <MessageCircle size={16} />
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <PaymentTable 
+            players={playersForPayments}
+            months={months}
+            payments={payments}
+            onToggle={handleToggle}
+            onCobrar={handleCobrar}
+          />
         </div>
       )}
 
       {activeTab === 'fluxo' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
-              <div className="flex items-center gap-3 text-emerald-500 mb-2">
-                <TrendingUp size={24} />
-                <h3 className="font-medium text-zinc-400">Entradas</h3>
-              </div>
-              <p className="text-3xl font-bold text-white">R$ {formatCurrency(totalIncome)}</p>
-            </div>
-            <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
-              <div className="flex items-center gap-3 text-red-500 mb-2">
-                <TrendingDown size={24} />
-                <h3 className="font-medium text-zinc-400">Saídas</h3>
-              </div>
-              <p className="text-3xl font-bold text-white">R$ {formatCurrency(totalExpense)}</p>
-            </div>
-            <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl">
-              <div className="flex items-center gap-3 text-indigo-500 mb-2">
-                <Wallet size={24} />
-                <h3 className="font-medium text-zinc-400">Saldo Atual</h3>
-              </div>
-              <p className={`text-3xl font-bold ${balance >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                R$ {formatCurrency(balance)}
-              </p>
-            </div>
-          </div>
+          <FinancialSummary 
+            totalIncome={totalIncome}
+            totalExpense={totalExpense}
+            balance={balance}
+          />
 
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold">Histórico de Transações</h2>
@@ -447,216 +374,30 @@ export function Payments() {
             </div>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-zinc-950 text-zinc-400 uppercase tracking-wider text-xs">
-                <tr>
-                  <th className="px-6 py-4 font-medium">Data</th>
-                  <th className="px-6 py-4 font-medium">Descrição</th>
-                  <th className="px-6 py-4 font-medium">Categoria</th>
-                  <th className="px-6 py-4 font-medium text-right">Valor</th>
-                  <th className="px-6 py-4 font-medium text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800">
-                {transactions.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-zinc-500">
-                      Nenhuma transação registrada.
-                    </td>
-                  </tr>
-                ) : (
-                  transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(tx => (
-                    <tr key={tx.id} className="hover:bg-zinc-800/50 transition-colors">
-                      <td className="px-6 py-4 text-zinc-300">
-                        {new Date(tx.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
-                      </td>
-                      <td className="px-6 py-4 text-white font-medium">{tx.description}</td>
-                      <td className="px-6 py-4 text-zinc-400">{tx.category}</td>
-                      <td className={`px-6 py-4 text-right font-bold ${tx.type === 'income' ? 'text-emerald-500' : 'text-red-500'}`}>
-                        {tx.type === 'income' ? '+' : '-'} R$ {formatCurrency(tx.amount)}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button 
-                          onClick={() => handleDeleteTx(tx.id)}
-                          className="text-zinc-500 hover:text-red-400 p-2 hover:bg-red-500/10 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          <CashFlow 
+            transactions={transactions}
+            onDelete={handleDeleteTx}
+          />
         </div>
       )}
 
-      {showTxModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <motion.div 
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-md"
-          >
-            <h2 className="text-2xl font-bold mb-6">Nova Transação</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Tipo</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input 
-                      type="radio" 
-                      name="type" 
-                      value="income" 
-                      checked={newTx.type === 'income'}
-                      onChange={e => setNewTx({...newTx, type: e.target.value as 'income'})}
-                      className="text-indigo-500 focus:ring-indigo-500"
-                    />
-                    <span className="text-emerald-500 font-medium">Entrada</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input 
-                      type="radio" 
-                      name="type" 
-                      value="expense" 
-                      checked={newTx.type === 'expense'}
-                      onChange={e => setNewTx({...newTx, type: e.target.value as 'expense'})}
-                      className="text-indigo-500 focus:ring-indigo-500"
-                    />
-                    <span className="text-red-500 font-medium">Saída</span>
-                  </label>
-                </div>
-              </div>
+      <TransactionModal 
+        isOpen={showTxModal}
+        onClose={() => setShowTxModal(false)}
+        onSave={handleSaveTx}
+        newTx={newTx}
+        setNewTx={setNewTx}
+      />
 
-              <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Data</label>
-                <input 
-                  type="date" 
-                  value={newTx.date}
-                  onChange={e => setNewTx({...newTx, date: e.target.value})}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Descrição</label>
-                <input 
-                  type="text" 
-                  value={newTx.description || ''}
-                  onChange={e => setNewTx({...newTx, description: e.target.value})}
-                  placeholder="Ex: Compra de bolas"
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Categoria</label>
-                <select 
-                  value={newTx.category || ''}
-                  onChange={e => setNewTx({...newTx, category: e.target.value})}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="">Selecione...</option>
-                  {newTx.type === 'income' ? (
-                    <>
-                      <option value="Mensalidade">Mensalidade</option>
-                      <option value="Patrocínio">Patrocínio</option>
-                      <option value="Rifa">Rifa</option>
-                      <option value="Outros">Outros</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="Juiz">Pagamento de Juiz</option>
-                      <option value="Campo">Aluguel do Campo</option>
-                      <option value="Lavagem">Lavagem de Uniforme</option>
-                      <option value="Bolas">Compra de Bolas</option>
-                      <option value="Outros">Outros</option>
-                    </>
-                  )}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Valor (R$)</label>
-                <input 
-                  type="text" 
-                  value={newTx.amount || ''}
-                  onChange={e => setNewTx({...newTx, amount: e.target.value})}
-                  placeholder="0,00"
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-8">
-              <button 
-                onClick={() => setShowTxModal(false)}
-                className="flex-1 py-3 rounded-xl font-bold bg-zinc-800 hover:bg-zinc-700 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button 
-                onClick={handleSaveTx}
-                className="flex-1 py-3 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 transition-colors text-white"
-              >
-                Salvar
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {showReportModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <motion.div 
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-md"
-          >
-            <h2 className="text-2xl font-bold mb-6">Gerar Relatório PDF</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Data Inicial</label>
-                <input 
-                  type="date" 
-                  value={reportStartDate}
-                  onChange={e => setReportStartDate(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-zinc-400 mb-1">Data Final</label>
-                <input 
-                  type="date" 
-                  value={reportEndDate}
-                  onChange={e => setReportEndDate(e.target.value)}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-8">
-              <button 
-                onClick={() => setShowReportModal(false)}
-                className="flex-1 py-3 rounded-xl font-bold bg-zinc-800 hover:bg-zinc-700 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button 
-                onClick={generatePDF}
-                className="flex-1 py-3 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 transition-colors text-white"
-              >
-                Gerar PDF
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+      <ReportModal 
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        onGenerate={generatePDF}
+        startDate={reportStartDate}
+        setStartDate={setReportStartDate}
+        endDate={reportEndDate}
+        setEndDate={setReportEndDate}
+      />
     </motion.div>
   );
 }
